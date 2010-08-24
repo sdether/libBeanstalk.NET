@@ -17,6 +17,7 @@
  * limitations under the License.
  */
 
+using System;
 using System.IO;
 using Droog.Beanstalk.Client.Test;
 using NUnit.Framework;
@@ -30,7 +31,7 @@ namespace Droog.Beanstalk.Client.IntegrationTest {
             using(var client = new BeanstalkClient(TestConfig.Host, TestConfig.Port)) {
                 var data = "abc";
                 var stream = data.AsStream();
-                var put = client.Put(100, 0, 120, stream, data.Length);
+                var put = client.Put(100, TimeSpan.Zero, TimeSpan.FromMinutes(2), stream, data.Length);
                 var reserve = client.Reserve();
                 Assert.AreEqual(put.JobId, reserve.JobId);
                 Assert.IsTrue(client.Delete(reserve.JobId));

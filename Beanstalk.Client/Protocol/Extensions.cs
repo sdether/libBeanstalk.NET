@@ -129,7 +129,7 @@ namespace Droog.Beanstalk.Client.Protocol {
 
         public static ReleaseStatus ToReleaseStatus(this ResponseStatus status) {
             try {
-                Enum.Parse(typeof(ReleaseStatus), status.ToString());
+                return (ReleaseStatus)Enum.Parse(typeof(ReleaseStatus), status.ToString());
             } catch {
                 throw new InvalidReleaseStatusException(status);
             }
