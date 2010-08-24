@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Beanstalk.Client", "Beanstalk.Client\Beanstalk.Client.csproj", "{7103300D-B9FA-485A-912D-D9CC9D8B80F7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Beanstalk.Client.Test", "Beanstalk.Client.Test\Beanstalk.Client.Test.csproj", "{F387F05B-6944-4AB6-8CE5-3765B7489FD9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Beanstalk.Client.IntegrationTest", "Beanstalk.Client.IntegrationTest\Beanstalk.Client.IntegrationTest.csproj", "{B4303746-F746-4254-9EC3-0D36361B98D5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7103300D-B9FA-485A-912D-D9CC9D8B80F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7103300D-B9FA-485A-912D-D9CC9D8B80F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7103300D-B9FA-485A-912D-D9CC9D8B80F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7103300D-B9FA-485A-912D-D9CC9D8B80F7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F387F05B-6944-4AB6-8CE5-3765B7489FD9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F387F05B-6944-4AB6-8CE5-3765B7489FD9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F387F05B-6944-4AB6-8CE5-3765B7489FD9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F387F05B-6944-4AB6-8CE5-3765B7489FD9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4303746-F746-4254-9EC3-0D36361B98D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4303746-F746-4254-9EC3-0D36361B98D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4303746-F746-4254-9EC3-0D36361B98D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4303746-F746-4254-9EC3-0D36361B98D5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
