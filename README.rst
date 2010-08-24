@@ -25,6 +25,7 @@ Usage
     
     // delete reserved data from queue
     client.Delete(reserve.JobId);
+  }
 
 Patches
 =======
