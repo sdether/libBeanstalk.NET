@@ -48,7 +48,7 @@ namespace Droog.Beanstalk.Client.Protocol {
         private static void SendBuffer(this ISocket socket, byte[] buffer, int count) {
             var offset = 0;
             while(count > 0) {
-                Console.WriteLine(Encoding.ASCII.GetString(buffer,offset,count));
+                Console.WriteLine(Encoding.ASCII.GetString(buffer, offset, count));
                 var sent = socket.Send(buffer, offset, count);
                 offset += sent;
                 count -= sent;
@@ -126,5 +126,14 @@ namespace Droog.Beanstalk.Client.Protocol {
             }
             return response;
         }
+
+        public static ReleaseStatus ToReleaseStatus(this ResponseStatus status) {
+            try {
+                Enum.Parse(typeof(ReleaseStatus), status.ToString());
+            } catch {
+                throw new InvalidReleaseStatusException(status);
+            }
+        }
     }
+
 }

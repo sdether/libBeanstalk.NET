@@ -82,6 +82,13 @@ namespace Droog.Beanstalk.Client.Protocol {
             return this;
         }
 
+        public Request AppendArgument(TimeSpan arg) {
+            ThrowIfDone();
+            _request.WriteByte((byte)' ');
+            _request.Write(Encoding.ASCII.GetBytes(((uint)arg.TotalSeconds).ToString()));
+            return this;
+        }
+
         public Request WithData(Stream data, long dataLength) {
             ThrowIfDone();
             _data = data;

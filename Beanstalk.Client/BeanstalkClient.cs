@@ -114,7 +114,7 @@ namespace Droog.Beanstalk.Client {
             }
         }
 
-        public PutResponse Put(uint priority, uint delay, uint timeToRun, Stream request, long length) {
+        public PutResponse Put(uint priority, TimeSpan delay, TimeSpan timeToRun, Stream request, long length) {
             var response = Exec(Request.Create(RequestCommand.Put)
                 .AppendArgument(priority)
                 .AppendArgument(delay)
@@ -142,8 +142,19 @@ namespace Droog.Beanstalk.Client {
             throw new ShouldNeverHappenException();
         }
 
-        public Job Reserve(uint timeout) {
-            throw new NotImplementedException();
+        public Job Reserve(TimeSpan timeout) {
+            var response = Exec(Request.Create(RequestCommand.Reserve)
+                .AppendArgument(timeout)
+                .ExpectStatuses(ResponseStatus.DeadlineSoon | ResponseStatus.TimedOut| ResponseStatus.Reserved));
+            switch(response.Status) {
+                case ResponseStatus.Reserved:
+                    return new Job(uint.Parse(response.Arguments[0]), response.Data, long.Parse(response.Arguments[1]));
+                case ResponseStatus.TimedOut:
+                    throw new TimedoutException();
+                case ResponseStatus.DeadlineSoon:
+                    throw new DeadlineSoonException();
+            }
+            throw new ShouldNeverHappenException();
         }
 
         public bool Delete(uint jobId) {
@@ -153,8 +164,13 @@ namespace Droog.Beanstalk.Client {
             return response.Status == ResponseStatus.Deleted;
         }
 
-        public ReleaseStatus Release(uint jobId, uint priority, uint delay) {
-            throw new NotImplementedException();
+        public ReleaseStatus Release(uint jobId, uint priority, TimeSpan delay) {
+            var response = Exec(Request.Create(RequestCommand.Release)
+                .AppendArgument(jobId)
+                .AppendArgument(priority)
+                .AppendArgument(delay)
+                .ExpectStatuses(ResponseStatus.Released | ResponseStatus.Buried | ResponseStatus.NotFound));
+            return response.Status.ToReleaseStatus();
         }
 
         public bool Bury(uint jobId, uint priority) {

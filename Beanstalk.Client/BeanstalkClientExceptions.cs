@@ -21,14 +21,14 @@ using System;
 using Droog.Beanstalk.Client.Protocol;
 
 namespace Droog.Beanstalk.Client {
-    public abstract class BeanstalkClientExceptions : Exception {
-        protected BeanstalkClientExceptions() { }
-        protected BeanstalkClientExceptions(string message) : base(message) { }
-        protected BeanstalkClientExceptions(string message, Exception exception) : base(message, exception) { }
+    public abstract class BeanstalkClientException : Exception {
+        protected BeanstalkClientException() { }
+        protected BeanstalkClientException(string message) : base(message) { }
+        protected BeanstalkClientException(string message, Exception exception) : base(message, exception) { }
     }
 
     public class EmptyResponseException : ConnectionException { }
-    public abstract class ConnectionException : BeanstalkClientExceptions {
+    public abstract class ConnectionException : BeanstalkClientException {
         protected ConnectionException() { }
         protected ConnectionException(string message) : base(message) { }
 
@@ -37,16 +37,17 @@ namespace Droog.Beanstalk.Client {
         public ReadException(string message) : base(message) { }
     }
     public class WriteException : ConnectionException { }
-    public class DeadlineSoonException : BeanstalkClientExceptions { }
-    public class ShouldNeverHappenException : BeanstalkClientExceptions { }
+    public class TimedoutException : BeanstalkClientException { }
+    public class DeadlineSoonException : BeanstalkClientException { }
+    public class ShouldNeverHappenException : BeanstalkClientException { }
 
-    public class ConnectException : BeanstalkClientExceptions {
+    public class ConnectException : BeanstalkClientException {
         public ConnectException(Exception exception)
             : base("Unable to Connect to Beanstalk server", exception) {
         }
     }
 
-    public class UnknowResponseException : BeanstalkClientExceptions {
+    public class UnknowResponseException : BeanstalkClientException {
         public readonly string Response;
         public UnknowResponseException(string response)
             : base(string.Format("Response '{0}' is not supported by this client", response)) {
@@ -54,7 +55,7 @@ namespace Droog.Beanstalk.Client {
         }
     }
 
-    public class InvalidStatusException : BeanstalkClientExceptions {
+    public class InvalidStatusException : BeanstalkClientException {
         public readonly RequestCommand Command;
         public readonly ResponseStatus Status;
 
@@ -65,11 +66,19 @@ namespace Droog.Beanstalk.Client {
         }
     }
 
-    public class PutFailedException : BeanstalkClientExceptions {
+    public class PutFailedException : BeanstalkClientException {
         public readonly ResponseStatus Status;
 
         public PutFailedException(ResponseStatus status)
             : base(string.Format("Put failed with response '{0}'", status)) {
+            Status = status;
+        }
+    }
+
+    public class InvalidReleaseStatusException : BeanstalkClientException {
+        public readonly ResponseStatus Status;
+        public InvalidReleaseStatusException(ResponseStatus status)
+            : base(string.Format("Unable to convert response status '{0}' to ReleaseStatus", status)) {
             Status = status;
         }
     }

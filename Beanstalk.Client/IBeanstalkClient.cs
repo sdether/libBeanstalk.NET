@@ -35,15 +35,15 @@ namespace Droog.Beanstalk.Client
         // Consumer related
         string CurrentTube { get; set; }
 
-        PutResponse Put(uint priority, uint delay, uint timeToRun, Stream request, long length);
+        PutResponse Put(uint priority, TimeSpan delay, TimeSpan timeToRun, Stream request, long length);
 
         // Producer related
         ICollection<string> WatchedTubes { get; }
 
         Job Reserve();
-        Job Reserve(uint timeout);
+        Job Reserve(TimeSpan timeout);
         bool Delete(uint jobId);
-        ReleaseStatus Release(uint jobId, uint priority, uint delay);
+        ReleaseStatus Release(uint jobId, uint priority, TimeSpan delay);
         bool Bury(uint jobId, uint priority);
         bool Touch(uint jobId);
 
