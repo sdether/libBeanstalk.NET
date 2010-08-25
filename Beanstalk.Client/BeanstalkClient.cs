@@ -26,20 +26,24 @@ using System.Threading;
 using Droog.Beanstalk.Client.Protocol;
 
 namespace Droog.Beanstalk.Client {
-    public class BeanstalkClient : IBeanstalkClient {
+
+    // TODO: should query the current and watched tubes at start-up, especially once there are connection pools
+    public class BeanstalkClient : IBeanstalkClient, IWatchedTubeClient {
         public static readonly TimeSpan DefaultConnectTimeout = TimeSpan.FromSeconds(10);
 
         private readonly Func<ISocket> _socketFactory;
         private ISocket _socket;
         private bool _isDisposed;
         private readonly byte[] _buffer = new byte[16 * 1024];
-        private string _currentTube;
+        private string _currentTube = "default";
+        private readonly TubeCollectionProxy _watchedTubes;
 
         public BeanstalkClient(IPAddress address, int port)
             : this(address, port, DefaultConnectTimeout) {
         }
 
-        public BeanstalkClient(IPAddress address, int port, TimeSpan connectTimeout) {
+        public BeanstalkClient(IPAddress address, int port, TimeSpan connectTimeout)
+            : this() {
             _socketFactory = () => {
                 var timeout = new ManualResetEvent(false);
                 Exception connectFailure = null;
@@ -69,7 +73,8 @@ namespace Droog.Beanstalk.Client {
             : this(host, port, DefaultConnectTimeout) {
         }
 
-        public BeanstalkClient(string host, int port, TimeSpan connectTimeout) {
+        public BeanstalkClient(string host, int port, TimeSpan connectTimeout)
+            : this() {
             _socketFactory = () => {
                 var timeout = new ManualResetEvent(false);
                 Exception connectFailure = null;
@@ -95,13 +100,17 @@ namespace Droog.Beanstalk.Client {
             };
         }
 
-        public BeanstalkClient(Func<ISocket> socketFactory) {
+        public BeanstalkClient(Func<ISocket> socketFactory)
+            : this() {
             _socketFactory = socketFactory;
         }
 
-        public void Connect() {
-            VerifyConnection();
+        private BeanstalkClient() {
+            _watchedTubes = new TubeCollectionProxy(this, new[] { "default" });
         }
+
+        public IWatchedTubeCollection WatchedTubes { get { return _watchedTubes; } }
+        public bool Connected { get { return _socket == null ? false : _socket.Connected; } }
 
         public string CurrentTube {
             get {
@@ -109,9 +118,13 @@ namespace Droog.Beanstalk.Client {
                 return _currentTube;
             }
             set {
-                Exec(Request.Create(RequestCommand.Use).AppendArgument(value).ExpectStatuses(ResponseStatus.Using));
-                _currentTube = value;
+                var response = Exec(Request.Create(RequestCommand.Use).AppendArgument(value).ExpectStatuses(ResponseStatus.Using));
+                _currentTube = response.Arguments[0];
             }
+        }
+
+        public void Connect() {
+            VerifyConnection();
         }
 
         public PutResponse Put(uint priority, TimeSpan delay, TimeSpan timeToRun, Stream request, long length) {
@@ -125,10 +138,6 @@ namespace Droog.Beanstalk.Client {
                 return new PutResponse(response.Status == ResponseStatus.Buried, uint.Parse(response.Arguments[0]));
             }
             throw new PutFailedException(response.Status);
-        }
-
-        public ICollection<string> WatchedTubes {
-            get { throw new NotImplementedException(); }
         }
 
         public Job Reserve() {
@@ -145,7 +154,7 @@ namespace Droog.Beanstalk.Client {
         public Job Reserve(TimeSpan timeout) {
             var response = Exec(Request.Create(RequestCommand.Reserve)
                 .AppendArgument(timeout)
-                .ExpectStatuses(ResponseStatus.DeadlineSoon | ResponseStatus.TimedOut| ResponseStatus.Reserved));
+                .ExpectStatuses(ResponseStatus.DeadlineSoon | ResponseStatus.TimedOut | ResponseStatus.Reserved));
             switch(response.Status) {
                 case ResponseStatus.Reserved:
                     return new Job(uint.Parse(response.Arguments[0]), response.Data, long.Parse(response.Arguments[1]));
@@ -210,18 +219,13 @@ namespace Droog.Beanstalk.Client {
         }
 
         public ServerStats GetServerStats() {
-            throw new NotImplementedException();
+            var response = Exec(Request.Create(RequestCommand.Stats).ExpectStatuses(ResponseStatus.Ok));
+            return new ServerStats(MicroYaml.ParseDictionary(response));
         }
 
         public IEnumerable<string> GetTubes() {
             throw new NotImplementedException();
         }
-
-        public IEnumerable<string> KnownTubes {
-            get { throw new NotImplementedException(); }
-        }
-
-        public bool Connected { get { return _socket == null ? false : _socket.Connected; } }
 
         public void Close() {
             if(_isDisposed) {
@@ -232,6 +236,21 @@ namespace Droog.Beanstalk.Client {
             }
             _socket.Close();
             _socket = null;
+        }
+
+        int IWatchedTubeClient.Watch(string tube) {
+            var response = Exec(Request.Create(RequestCommand.Watch).AppendArgument(tube).ExpectStatuses(ResponseStatus.Watching));
+            return int.Parse(response.Arguments[0]);
+        }
+
+        int IWatchedTubeClient.Ignore(string tube) {
+            var response = Exec(Request.Create(RequestCommand.Ignore).AppendArgument(tube).ExpectStatuses(ResponseStatus.Watching | ResponseStatus.NotIgnored));
+            return response.Status == ResponseStatus.Watching ? int.Parse(response.Arguments[0]) : 0;
+        }
+
+        IEnumerable<string> IWatchedTubeClient.ListWatchedTubes() {
+            var response = Exec(Request.Create(RequestCommand.ListTubesWatched).ExpectStatuses(ResponseStatus.Ok));
+            return MicroYaml.ParseList(response);
         }
 
         private Response Exec(Request request) {

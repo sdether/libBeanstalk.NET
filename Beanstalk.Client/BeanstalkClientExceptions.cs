@@ -18,6 +18,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using Droog.Beanstalk.Client.Protocol;
 
 namespace Droog.Beanstalk.Client {

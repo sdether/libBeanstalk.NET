@@ -20,19 +20,12 @@
 using System.Collections.Generic;
 
 namespace Droog.Beanstalk.Client {
-    public class ServerStats {
-        private readonly IDictionary<string, string> _dictionary;
-
-        public ServerStats(IDictionary<string, string> dictionary) {
-            _dictionary = dictionary;
-        }
-
-        public string this[string key] {
-            get {
-                string value;
-                _dictionary.TryGetValue(key, out value);
-                return value;
-            }
-        }
+    public interface IWatchedTubeCollection : IEnumerable<string> {
+        int Count { get; }
+        void Add(string tube);
+        bool Remove(string tube);
+        bool Contains(string tube);
+        void CopyTo(string[] array, int arrayIndex);
+        void Refresh();
     }
 }

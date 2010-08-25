@@ -1,4 +1,4 @@
-/*
+﻿/*
  * libBeanstalk.NET 
  * Copyright (C) 2010 Arne F. Claassen
  * geekblog [at] claassen [dot] net
@@ -19,20 +19,10 @@
 
 using System.Collections.Generic;
 
-namespace Droog.Beanstalk.Client {
-    public class ServerStats {
-        private readonly IDictionary<string, string> _dictionary;
-
-        public ServerStats(IDictionary<string, string> dictionary) {
-            _dictionary = dictionary;
-        }
-
-        public string this[string key] {
-            get {
-                string value;
-                _dictionary.TryGetValue(key, out value);
-                return value;
-            }
-        }
+namespace Droog.Beanstalk.Client.Protocol {
+    public interface IWatchedTubeClient {
+        int Watch(string tube);
+        int Ignore(string tube);
+        IEnumerable<string> ListWatchedTubes();
     }
 }

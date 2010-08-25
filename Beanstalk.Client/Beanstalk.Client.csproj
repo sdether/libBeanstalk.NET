@@ -48,6 +48,9 @@
     <Compile Include="BeanstalkClient.cs" />
     <Compile Include="BeanstalkClientExceptions.cs" />
     <Compile Include="Protocol\ISocket.cs" />
+    <Compile Include="Protocol\IWatchedTubeClient.cs" />
+    <Compile Include="IWatchedTubeCollection.cs" />
+    <Compile Include="Protocol\MicroYaml.cs" />
     <Compile Include="Protocol\RequestCommand.cs" />
     <Compile Include="IBeanstalkClient.cs" />
     <Compile Include="Job.cs" />
@@ -56,6 +59,7 @@
     <Compile Include="PeekResponse.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Protocol\SocketAdapter.cs" />
+    <Compile Include="Protocol\TubeCollectionProxy.cs" />
     <Compile Include="PutResponse.cs" />
     <Compile Include="ReleaseStatus.cs" />
     <Compile Include="ServerStats.cs" />

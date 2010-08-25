@@ -38,7 +38,7 @@ namespace Droog.Beanstalk.Client
         PutResponse Put(uint priority, TimeSpan delay, TimeSpan timeToRun, Stream request, long length);
 
         // Producer related
-        ICollection<string> WatchedTubes { get; }
+        IWatchedTubeCollection WatchedTubes { get; }
 
         Job Reserve();
         Job Reserve(TimeSpan timeout);
