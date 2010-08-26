@@ -34,8 +34,8 @@ namespace Droog.Beanstalk.Client.IntegrationTest {
                 var stream = data.AsStream();
                 var put = client.Put(100, TimeSpan.Zero, TimeSpan.FromMinutes(2), stream, data.Length);
                 var reserve = client.Reserve();
-                Assert.AreEqual(put.JobId, reserve.JobId);
-                Assert.IsTrue(client.Delete(reserve.JobId));
+                Assert.AreEqual(put.JobId, reserve.Id);
+                Assert.IsTrue(client.Delete(reserve.Id));
                 using(var reader = new StreamReader(reserve.Data)) {
                     Assert.AreEqual(data, reader.ReadToEnd());
                 }

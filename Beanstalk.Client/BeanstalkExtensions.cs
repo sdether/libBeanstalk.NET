@@ -51,7 +51,7 @@ namespace Droog.Beanstalk.Client {
         public static Job<string> Reserve(this IBeanstalkClient client) {
             var job = client.Reserve();
             using(var reader = new StreamReader(job.Data)) {
-                return new Job<string>(job.JobId, reader.ReadToEnd());
+                return new Job<string>(job.Id, reader.ReadToEnd());
             }
         }
 
@@ -61,7 +61,7 @@ namespace Droog.Beanstalk.Client {
                 return null;
             }
             using(var reader = new StreamReader(job.Data)) {
-                return new Job<string>(job.JobId, reader.ReadToEnd());
+                return new Job<string>(job.Id, reader.ReadToEnd());
             }
         }
     }

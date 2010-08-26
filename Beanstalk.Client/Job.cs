@@ -22,17 +22,17 @@ using System.Text;
 
 namespace Droog.Beanstalk.Client {
     public class Job {
-        private readonly uint _jobId;
+        private readonly uint _id;
         private readonly Stream _data;
         private readonly long _length;
 
         public Job(uint jobId, Stream data, long length) {
-            _jobId = jobId;
+            _id = jobId;
             _data = data;
             _length = length;
         }
 
-        public uint JobId { get { return _jobId; } }
+        public uint Id { get { return _id; } }
         public Stream Data { get { return _data; } }
         public long DataLength { get { return _length; } }
     }

@@ -247,9 +247,7 @@ namespace Droog.Beanstalk.Client {
         }
 
         public void Close() {
-            if(_isDisposed) {
-                throw new ObjectDisposedException(GetType().ToString());
-            }
+            ThrowIfDisposed();
             if(_socket == null || !_socket.Connected) {
                 return;
             }
@@ -290,15 +288,19 @@ namespace Droog.Beanstalk.Client {
         }
 
         private void VerifyConnection() {
-            if(_isDisposed) {
-                throw new ObjectDisposedException(GetType().ToString());
-            }
+            ThrowIfDisposed();
             if(_socket != null && !_socket.Connected) {
                 _socket.Close();
                 _socket = null;
             }
             if(_socket == null) {
                 _socket = _socketFactory();
+            }
+        }
+
+        private void ThrowIfDisposed() {
+            if(_isDisposed) {
+                throw new ObjectDisposedException(GetType().ToString());
             }
         }
 

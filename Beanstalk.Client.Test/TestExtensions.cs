@@ -34,5 +34,12 @@ namespace Droog.Beanstalk.Client.Test {
             return Encoding.ASCII.GetString(buffer, 0, count);
         }
 
+        public static string AsText(this Stream stream) {
+            stream.Position = 0;
+            using(var reader = new StreamReader(stream)) {
+                return reader.ReadToEnd();
+            }
+        }
+
     }
 }
