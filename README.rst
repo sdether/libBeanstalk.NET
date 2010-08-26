@@ -1,4 +1,4 @@
-libBeanstalk.NET alpha
+libBeanstalk.NET 0.1
 ==========
 A .NET driver for Beanstalkd.
 
@@ -51,7 +51,7 @@ Patches are welcome and will likely be accepted.  By submitting a patch you assi
 
 Roadmap
 =======
-- Complete the rest of the 1.3 protocol
+- Add more tests
 - Add connection pooling
 - Add POCO producers and consumers with configurable serializers
 
