@@ -44,6 +44,7 @@ namespace Droog.Beanstalk.Client
 
         Job Reserve();
         Job Reserve(TimeSpan timeout);
+        ReservationStatus TryReserve(TimeSpan timeout, out Job job);
         bool Delete(uint jobId);
         ReleaseStatus Release(uint jobId, uint priority, TimeSpan delay);
         bool Bury(uint jobId, uint priority);

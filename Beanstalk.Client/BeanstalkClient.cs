@@ -172,6 +172,21 @@ namespace Droog.Beanstalk.Client {
             throw new ShouldNeverHappenException();
         }
 
+        public ReservationStatus TryReserve(TimeSpan timeout, out Job job) {
+            var response = Exec(Request.Create(RequestCommand.Reserve)
+                .AppendArgument(timeout)
+                .ExpectStatuses(ResponseStatus.DeadlineSoon | ResponseStatus.TimedOut | ResponseStatus.Reserved));
+            switch(response.Status) {
+                case ResponseStatus.Reserved:
+                    job = new Job(uint.Parse(response.Arguments[0]), response.Data, long.Parse(response.Arguments[1]));
+                    break;
+                default:
+                    job = null;
+                    break;
+            }
+            return response.Status.ToReservationStatus();
+        }
+
         public bool Delete(uint jobId) {
             var response = Exec(Request.Create(RequestCommand.Delete)
                 .AppendArgument(jobId)
@@ -272,8 +287,8 @@ namespace Droog.Beanstalk.Client {
 
         private Job Peek(Request request) {
             var response = Exec(request.ExpectStatuses(ResponseStatus.Found | ResponseStatus.NotFound));
-            return response.Status == ResponseStatus.NotFound 
-                       ? null 
+            return response.Status == ResponseStatus.NotFound
+                       ? null
                        : new Job(uint.Parse(response.Arguments[0]), response.Data, long.Parse(response.Arguments[1]));
         }
 

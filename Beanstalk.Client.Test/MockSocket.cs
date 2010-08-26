@@ -6,7 +6,7 @@ using NUnit.Framework;
 namespace Droog.Beanstalk.Client.Test {
     public class MockSocket : ISocket {
         public int CloseCalled;
-        private readonly MemoryStream _sentData = new MemoryStream();
+        private MemoryStream _sentData = new MemoryStream();
         private MemoryStream _receivedData = new MemoryStream();
         private string _sent;
 
@@ -29,6 +29,7 @@ namespace Droog.Beanstalk.Client.Test {
         public void Expect(string sent, string received) {
             _receivedData = received.AsStream();
             _sent = sent;
+            _sentData = new MemoryStream();
         }
 
         public void Verify() {

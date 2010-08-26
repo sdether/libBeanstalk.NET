@@ -83,4 +83,12 @@ namespace Droog.Beanstalk.Client {
             Status = status;
         }
     }
+
+    public class InvalidReservationStatusException : BeanstalkClientException {
+        public readonly ResponseStatus Status;
+        public InvalidReservationStatusException(ResponseStatus status)
+            : base(string.Format("Unable to convert response status '{0}' to ReservationStatus", status)) {
+            Status = status;
+        }
+    }
 }

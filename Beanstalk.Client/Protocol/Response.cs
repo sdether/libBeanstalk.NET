@@ -28,7 +28,7 @@ namespace Droog.Beanstalk.Client.Protocol {
         static Response() {
             _responseLookup.Add("BAD_FORMAT", new ResponseInfo(ResponseStatus.BadFormat, false));
             _responseLookup.Add("BURIED", new ResponseInfo(ResponseStatus.Buried, false));
-            _responseLookup.Add("DEADLINESOON", new ResponseInfo(ResponseStatus.DeadlineSoon, false));
+            _responseLookup.Add("DEADLINE_SOON", new ResponseInfo(ResponseStatus.DeadlineSoon, false));
             _responseLookup.Add("DELETED", new ResponseInfo(ResponseStatus.Deleted, false));
             _responseLookup.Add("DRAINING", new ResponseInfo(ResponseStatus.Draining, false));
             _responseLookup.Add("EXPECTED_CRLF", new ResponseInfo(ResponseStatus.ExpectedCrlf, false));
@@ -43,7 +43,7 @@ namespace Droog.Beanstalk.Client.Protocol {
             _responseLookup.Add("OUT_OF_MEMORY", new ResponseInfo(ResponseStatus.OutOfMemory, false));
             _responseLookup.Add("RELEASED", new ResponseInfo(ResponseStatus.Released, false));
             _responseLookup.Add("RESERVED", new ResponseInfo(ResponseStatus.Reserved, true));
-            _responseLookup.Add("TIMEDOUT", new ResponseInfo(ResponseStatus.TimedOut, false));
+            _responseLookup.Add("TIMED_OUT", new ResponseInfo(ResponseStatus.TimedOut, false));
             _responseLookup.Add("TOUCHED", new ResponseInfo(ResponseStatus.Touched, false));
             _responseLookup.Add("UNKNOWN_COMMAND", new ResponseInfo(ResponseStatus.UnknownCommand, false));
             _responseLookup.Add("USING", new ResponseInfo(ResponseStatus.Using, false));

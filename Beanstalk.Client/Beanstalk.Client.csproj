@@ -64,6 +64,7 @@
     <Compile Include="Protocol\TubeCollectionProxy.cs" />
     <Compile Include="PutResponse.cs" />
     <Compile Include="ReleaseStatus.cs" />
+    <Compile Include="ReservationStatus.cs" />
     <Compile Include="ServerStats.cs" />
     <Compile Include="Protocol\StatsBase.cs" />
     <Compile Include="TubeStats.cs" />

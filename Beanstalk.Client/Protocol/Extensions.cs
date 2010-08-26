@@ -133,6 +133,13 @@ namespace Droog.Beanstalk.Client.Protocol {
                 throw new InvalidReleaseStatusException(status);
             }
         }
-    }
 
+        public static ReservationStatus ToReservationStatus(this ResponseStatus status) {
+            try {
+                return (ReservationStatus)Enum.Parse(typeof(ReservationStatus), status.ToString());
+            } catch {
+                throw new InvalidReservationStatusException(status);
+            }
+        }
+    }
 }
