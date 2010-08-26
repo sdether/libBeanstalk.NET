@@ -95,7 +95,16 @@ namespace Droog.Beanstalk.Client.Test {
 
         [Test]
         public void Can_reserve_with_timeout() {
-            _mockSocket.Expect("reserve 10\r\n", "RESERVED 123 3\r\nbar\r\n");
+            _mockSocket.Expect("reserve-with-timeout 10\r\n", "RESERVED 123 3\r\nbar\r\n");
+            var job = _client.Reserve(TimeSpan.FromSeconds(10));
+            _mockSocket.Verify();
+            Assert.AreEqual(123, job.Id);
+            Assert.AreEqual("bar", job.Data.AsText());
+        }
+
+        [Test]
+        public void Can_reserve_with_zero_timeout() {
+            _mockSocket.Expect("reserve-with-timeout 0\r\n", "RESERVED 123 3\r\nbar\r\n");
             var job = _client.Reserve(TimeSpan.FromSeconds(10));
             _mockSocket.Verify();
             Assert.AreEqual(123, job.Id);
@@ -104,7 +113,7 @@ namespace Droog.Beanstalk.Client.Test {
 
         [Test]
         public void Can_reserve_with_timeout_throwing_deadline_soon() {
-            _mockSocket.Expect("reserve 10\r\n", "DEADLINE_SOON\r\n");
+            _mockSocket.Expect("reserve-with-timeout 10\r\n", "DEADLINE_SOON\r\n");
             try {
                 _client.Reserve(TimeSpan.FromSeconds(10));
                 Assert.Fail("didn't throw deadline soon");
@@ -118,7 +127,7 @@ namespace Droog.Beanstalk.Client.Test {
 
         [Test]
         public void Can_reserve_with_timeout_timing_out() {
-            _mockSocket.Expect("reserve 10\r\n", "TIMED_OUT\r\n");
+            _mockSocket.Expect("reserve-with-timeout 10\r\n", "TIMED_OUT\r\n");
             try {
                 _client.Reserve(TimeSpan.FromSeconds(10));
                 Assert.Fail("didn't time out");
@@ -132,7 +141,7 @@ namespace Droog.Beanstalk.Client.Test {
 
         [Test]
         public void Can_TryReserve_with_timeout() {
-            _mockSocket.Expect("reserve 10\r\n", "RESERVED 123 3\r\nbar\r\n");
+            _mockSocket.Expect("reserve-with-timeout 10\r\n", "RESERVED 123 3\r\nbar\r\n");
             Job job;
             Assert.AreEqual(ReservationStatus.Reserved, _client.TryReserve(TimeSpan.FromSeconds(10), out job));
             _mockSocket.Verify();
@@ -142,7 +151,7 @@ namespace Droog.Beanstalk.Client.Test {
 
         [Test]
         public void Can_TryReserve_with_timeout_timing_out() {
-            _mockSocket.Expect("reserve 10\r\n", "TIMED_OUT\r\n");
+            _mockSocket.Expect("reserve-with-timeout 10\r\n", "TIMED_OUT\r\n");
             Job job;
             Assert.AreEqual(ReservationStatus.TimedOut, _client.TryReserve(TimeSpan.FromSeconds(10), out job));
             _mockSocket.Verify();
@@ -151,7 +160,7 @@ namespace Droog.Beanstalk.Client.Test {
 
         [Test]
         public void Can_TryReserve_with_timeout_throwing_deadline_soon() {
-            _mockSocket.Expect("reserve 10\r\n", "DEADLINE_SOON\r\n");
+            _mockSocket.Expect("reserve-with-timeout 10\r\n", "DEADLINE_SOON\r\n");
             Job job;
             Assert.AreEqual(ReservationStatus.DeadlineSoon, _client.TryReserve(TimeSpan.FromSeconds(10), out job));
             _mockSocket.Verify();

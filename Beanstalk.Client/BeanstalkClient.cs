@@ -158,7 +158,7 @@ namespace Droog.Beanstalk.Client {
         }
 
         public Job Reserve(TimeSpan timeout) {
-            var response = Exec(Request.Create(RequestCommand.Reserve)
+            var response = Exec(Request.Create(RequestCommand.ReserveWithTimeout)
                 .AppendArgument(timeout)
                 .ExpectStatuses(ResponseStatus.DeadlineSoon | ResponseStatus.TimedOut | ResponseStatus.Reserved));
             switch(response.Status) {
@@ -173,7 +173,7 @@ namespace Droog.Beanstalk.Client {
         }
 
         public ReservationStatus TryReserve(TimeSpan timeout, out Job job) {
-            var response = Exec(Request.Create(RequestCommand.Reserve)
+            var response = Exec(Request.Create(RequestCommand.ReserveWithTimeout)
                 .AppendArgument(timeout)
                 .ExpectStatuses(ResponseStatus.DeadlineSoon | ResponseStatus.TimedOut | ResponseStatus.Reserved));
             switch(response.Status) {
