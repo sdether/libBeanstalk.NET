@@ -18,6 +18,7 @@
  */
 
 using System.IO;
+using System.Text;
 
 namespace Droog.Beanstalk.Client {
     public class Job {
@@ -35,4 +36,19 @@ namespace Droog.Beanstalk.Client {
         public Stream Data { get { return _data; } }
         public long DataLength { get { return _length; } }
     }
+
+    public class Job<T> {
+        private readonly uint _jobId;
+        private readonly T _data;
+
+        public Job(uint jobId, T data) {
+            _jobId = jobId;
+            _data = data;
+        }
+
+        public uint JobId { get { return _jobId; } }
+        public T Data { get { return _data; } }
+    }
+
+
 }

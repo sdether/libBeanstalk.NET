@@ -17,6 +17,11 @@
  * limitations under the License.
  */
 
+using System.Collections.Generic;
+using Droog.Beanstalk.Client.Protocol;
+
 namespace Droog.Beanstalk.Client {
-    public class JobStats {}
+    public class JobStats : StatsBase {
+        public JobStats(IDictionary<string, string> dictionary) : base(dictionary) { }
+    }
 }

@@ -17,14 +17,12 @@
  * limitations under the License.
  */
 
-using System.Collections.Generic;
-using Droog.Beanstalk.Client.Protocol;
+using System;
 
 namespace Droog.Beanstalk.Client {
-    public class ServerStats : StatsBase {
-
-        public ServerStats(IDictionary<string, string> dictionary)
-            : base(dictionary) {
-        }
+    public class BeanstalkDefaults {
+        public uint Priority = ushort.MaxValue;
+        public TimeSpan Delay = TimeSpan.Zero;
+        public TimeSpan TimeToRun = TimeSpan.FromMinutes(10);
     }
 }

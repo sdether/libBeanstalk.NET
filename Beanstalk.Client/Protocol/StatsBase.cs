@@ -16,15 +16,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 using System.Collections.Generic;
-using Droog.Beanstalk.Client.Protocol;
 
-namespace Droog.Beanstalk.Client {
-    public class ServerStats : StatsBase {
+namespace Droog.Beanstalk.Client.Protocol {
+    public abstract class StatsBase {
+        protected readonly IDictionary<string, string> _dictionary;
 
-        public ServerStats(IDictionary<string, string> dictionary)
-            : base(dictionary) {
+        protected StatsBase(IDictionary<string, string> dictionary) { _dictionary = dictionary; }
+
+        public string this[string key] {
+            get {
+                string value;
+                _dictionary.TryGetValue(key, out value);
+                return value;
+            }
         }
     }
 }

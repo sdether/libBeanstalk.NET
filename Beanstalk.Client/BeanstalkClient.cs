@@ -29,14 +29,16 @@ namespace Droog.Beanstalk.Client {
 
     // TODO: should query the current and watched tubes at start-up, especially once there are connection pools
     public class BeanstalkClient : IBeanstalkClient, IWatchedTubeClient {
+
         public static readonly TimeSpan DefaultConnectTimeout = TimeSpan.FromSeconds(10);
 
         private readonly Func<ISocket> _socketFactory;
+        private readonly byte[] _buffer = new byte[16 * 1024];
+        private readonly TubeCollectionProxy _watchedTubes;
+        private readonly BeanstalkDefaults _defaults = new BeanstalkDefaults();
         private ISocket _socket;
         private bool _isDisposed;
-        private readonly byte[] _buffer = new byte[16 * 1024];
         private string _currentTube = "default";
-        private readonly TubeCollectionProxy _watchedTubes;
 
         public BeanstalkClient(IPAddress address, int port)
             : this(address, port, DefaultConnectTimeout) {
@@ -127,6 +129,10 @@ namespace Droog.Beanstalk.Client {
             VerifyConnection();
         }
 
+        public BeanstalkDefaults Defaults {
+            get { return _defaults; }
+        }
+
         public PutResponse Put(uint priority, TimeSpan delay, TimeSpan timeToRun, Stream request, long length) {
             var response = Exec(Request.Create(RequestCommand.Put)
                 .AppendArgument(priority)
@@ -183,39 +189,51 @@ namespace Droog.Beanstalk.Client {
         }
 
         public bool Bury(uint jobId, uint priority) {
-            throw new NotImplementedException();
+            var response = Exec(Request.Create(RequestCommand.Bury)
+                .AppendArgument(jobId)
+                .AppendArgument(priority)
+                .ExpectStatuses(ResponseStatus.Buried | ResponseStatus.NotFound));
+            return response.Status == ResponseStatus.Buried;
         }
 
         public bool Touch(uint jobId) {
-            throw new NotImplementedException();
+            var response = Exec(Request.Create(RequestCommand.Touch)
+                .AppendArgument(jobId)
+                .ExpectStatuses(ResponseStatus.Touched | ResponseStatus.NotFound));
+            return response.Status == ResponseStatus.Touched;
         }
 
-        public PeekResponse Peek(uint jobId) {
-            throw new NotImplementedException();
+        public Job Peek(uint jobId) {
+            return Peek(Request.Create(RequestCommand.Peek).AppendArgument(jobId));
         }
 
-        public PeekResponse PeekReady() {
-            throw new NotImplementedException();
+        public Job PeekReady() {
+            return Peek(Request.Create(RequestCommand.PeekReady));
         }
 
-        public PeekResponse PeekDelayed() {
-            throw new NotImplementedException();
+        public Job PeekDelayed() {
+            return Peek(Request.Create(RequestCommand.PeekDelayed));
         }
 
-        public PeekResponse PeekBuried() {
-            throw new NotImplementedException();
+        public Job PeekBuried() {
+            return Peek(Request.Create(RequestCommand.PeekBuried));
         }
 
         public uint Kick(uint bound) {
-            throw new NotImplementedException();
+            var response = Exec(Request.Create(RequestCommand.Touch)
+                .AppendArgument(bound)
+                .ExpectStatuses(ResponseStatus.Kicked));
+            return uint.Parse(response.Arguments[0]);
         }
 
         public JobStats GetJobStats(uint jobId) {
-            throw new NotImplementedException();
+            var response = Exec(Request.Create(RequestCommand.StatsJob).ExpectStatuses(ResponseStatus.Ok));
+            return new JobStats(MicroYaml.ParseDictionary(response));
         }
 
         public TubeStats GetTubeStats(string tube) {
-            throw new NotImplementedException();
+            var response = Exec(Request.Create(RequestCommand.StatsTube).ExpectStatuses(ResponseStatus.Ok));
+            return new TubeStats(MicroYaml.ParseDictionary(response));
         }
 
         public ServerStats GetServerStats() {
@@ -224,7 +242,8 @@ namespace Droog.Beanstalk.Client {
         }
 
         public IEnumerable<string> GetTubes() {
-            throw new NotImplementedException();
+            var response = Exec(Request.Create(RequestCommand.ListTubes).ExpectStatuses(ResponseStatus.Ok));
+            return MicroYaml.ParseList(response);
         }
 
         public void Close() {
@@ -251,6 +270,13 @@ namespace Droog.Beanstalk.Client {
         IEnumerable<string> IWatchedTubeClient.ListWatchedTubes() {
             var response = Exec(Request.Create(RequestCommand.ListTubesWatched).ExpectStatuses(ResponseStatus.Ok));
             return MicroYaml.ParseList(response);
+        }
+
+        private Job Peek(Request request) {
+            var response = Exec(request.ExpectStatuses(ResponseStatus.Found | ResponseStatus.NotFound));
+            return response.Status == ResponseStatus.NotFound 
+                       ? null 
+                       : new Job(uint.Parse(response.Arguments[0]), response.Data, long.Parse(response.Arguments[1]));
         }
 
         private Response Exec(Request request) {

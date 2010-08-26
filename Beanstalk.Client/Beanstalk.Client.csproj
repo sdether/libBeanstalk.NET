@@ -47,6 +47,8 @@
   <ItemGroup>
     <Compile Include="BeanstalkClient.cs" />
     <Compile Include="BeanstalkClientExceptions.cs" />
+    <Compile Include="BeanstalkDefaults.cs" />
+    <Compile Include="BeanstalkExtensions.cs" />
     <Compile Include="Protocol\ISocket.cs" />
     <Compile Include="Protocol\IWatchedTubeClient.cs" />
     <Compile Include="IWatchedTubeCollection.cs" />
@@ -63,6 +65,7 @@
     <Compile Include="PutResponse.cs" />
     <Compile Include="ReleaseStatus.cs" />
     <Compile Include="ServerStats.cs" />
+    <Compile Include="Protocol\StatsBase.cs" />
     <Compile Include="TubeStats.cs" />
     <Compile Include="Protocol\Request.cs" />
     <Compile Include="Protocol\RequestData.cs" />

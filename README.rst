@@ -12,6 +12,24 @@ Currently supports put, reserve and delete of the 1.3 beanstalkd protocol.
 
 Usage
 ====
+
+String data payload
+::
+  // connect to beanstalkd
+  using(var client = new BeanstalkClient(host, port)) {
+
+    // put some data
+    var put = client.Put("foo");
+  
+    // reserve data from queue
+    var reserve = client.Reserve();
+    Console.Writeline("data: {0}", reserve.Data);
+    
+    // delete reserved data from queue
+    client.Delete(reserve.JobId);
+  }
+
+Binary payload
 ::
 
   // connect to beanstalkd

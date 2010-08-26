@@ -35,6 +35,8 @@ namespace Droog.Beanstalk.Client
         // Consumer related
         string CurrentTube { get; set; }
 
+        BeanstalkDefaults Defaults { get; }
+
         PutResponse Put(uint priority, TimeSpan delay, TimeSpan timeToRun, Stream request, long length);
 
         // Producer related
@@ -48,10 +50,10 @@ namespace Droog.Beanstalk.Client
         bool Touch(uint jobId);
 
         // Misc
-        PeekResponse Peek(uint jobId);
-        PeekResponse PeekReady();
-        PeekResponse PeekDelayed();
-        PeekResponse PeekBuried();
+        Job Peek(uint jobId);
+        Job PeekReady();
+        Job PeekDelayed();
+        Job PeekBuried();
         uint Kick(uint bound);
         JobStats GetJobStats(uint jobId);
         TubeStats GetTubeStats(string tube);
