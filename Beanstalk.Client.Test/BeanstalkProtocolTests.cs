@@ -239,5 +239,78 @@ namespace Droog.Beanstalk.Client.Test {
             _mockSocket.Verify();
             Assert.AreEqual(new[] { "bob" }, _client.WatchedTubes.ToArray());
         }
+
+        [Test]
+        public void Can_refresh_watched_tubes() {
+            _mockSocket.Expect("list-tubes-watched\r\n", "OK 13\r\n---\r\n- bill\r\n\r\n");
+            _client.WatchedTubes.Refresh();
+            _mockSocket.Verify();
+            Assert.AreEqual(new[] { "bill" }, _client.WatchedTubes.ToArray());
+        }
+
+        [Test]
+        public void Can_peek_by_id() {
+            _mockSocket.Expect("peek 123\r\n", "FOUND 123 3\r\nbar\r\n");
+            var job = _client.Peek(123);
+            _mockSocket.Verify();
+            Assert.AreEqual(123, job.Id);
+            Assert.AreEqual("bar", job.Data.AsText());
+        }
+
+        [Test]
+        public void Can_peek_by_id_not_found() {
+            _mockSocket.Expect("peek 123\r\n", "NOT_FOUND\r\nbar\r\n");
+            Assert.IsNull(_client.Peek(123));
+            _mockSocket.Verify();
+        }
+
+        [Test]
+        public void Can_PeekReady() {
+            _mockSocket.Expect("peek-ready\r\n", "FOUND 123 3\r\nbar\r\n");
+            var job = _client.PeekReady();
+            _mockSocket.Verify();
+            Assert.AreEqual(123, job.Id);
+            Assert.AreEqual("bar", job.Data.AsText());
+        }
+
+        [Test]
+        public void Can_PeekReady_not_found() {
+            _mockSocket.Expect("peek-ready\r\n", "NOT_FOUND\r\nbar\r\n");
+            Assert.IsNull(_client.PeekReady());
+            _mockSocket.Verify();
+        }
+
+        [Test]
+        public void Can_PeekDelayed() {
+            _mockSocket.Expect("peek-delayed\r\n", "FOUND 123 3\r\nbar\r\n");
+            var job = _client.PeekDelayed();
+            _mockSocket.Verify();
+            Assert.AreEqual(123, job.Id);
+            Assert.AreEqual("bar", job.Data.AsText());
+        }
+
+        [Test]
+        public void Can_PeekDelayed_not_found() {
+            _mockSocket.Expect("peek-delayed\r\n", "NOT_FOUND\r\nbar\r\n");
+            Assert.IsNull(_client.PeekDelayed());
+            _mockSocket.Verify();
+        }
+
+        [Test]
+        public void Can_PeekBuried() {
+            _mockSocket.Expect("peek-buried\r\n", "FOUND 123 3\r\nbar\r\n");
+            var job = _client.PeekBuried();
+            _mockSocket.Verify();
+            Assert.AreEqual(123, job.Id);
+            Assert.AreEqual("bar", job.Data.AsText());
+        }
+
+        [Test]
+        public void Can_PeekBuried_not_found() {
+            _mockSocket.Expect("peek-buried\r\n", "NOT_FOUND\r\nbar\r\n");
+            Assert.IsNull(_client.PeekBuried());
+            _mockSocket.Verify();
+        }
+
     }
 }
