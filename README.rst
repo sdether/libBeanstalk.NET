@@ -8,7 +8,7 @@ Apache 2.0
 
 Status
 ======
-Currently supports put, reserve and delete of the 1.3 beanstalkd protocol.
+Currently supports the full 1.3 beanstalkd protocol.
 
 Usage
 ====
