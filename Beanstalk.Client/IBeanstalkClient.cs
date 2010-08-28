@@ -26,12 +26,9 @@ namespace Droog.Beanstalk.Client
     public interface IBeanstalkClient : IDisposable
     {
 
-        // Connection related
-        bool Connected { get; }
-
-        void Close();
-        void Connect();
-
+        // Connection state related
+        bool IsDisposed { get; }
+        
         // Consumer related
         string CurrentTube { get; set; }
 

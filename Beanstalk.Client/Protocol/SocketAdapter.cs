@@ -16,10 +16,62 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+using System;
+using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 
 namespace Droog.Beanstalk.Client.Protocol {
     public class SocketAdapter : ISocket {
+
+        public static ISocket Open(string host, int port, TimeSpan connectTimeout) {
+            var timeout = new ManualResetEvent(false);
+            Exception connectFailure = null;
+            var tcpClient = new TcpClient();
+            var ar = tcpClient.BeginConnect(host, port, r => {
+                try {
+                    tcpClient.EndConnect(r);
+                } catch(Exception e) {
+                    connectFailure = e;
+                } finally {
+                    timeout.Set();
+                }
+            }, null);
+
+            if(!timeout.WaitOne(connectTimeout)) {
+                tcpClient.EndConnect(ar);
+                throw new TimeoutException();
+            }
+            if(connectFailure != null) {
+                throw new ConnectException(connectFailure);
+            }
+            return new SocketAdapter(tcpClient);
+        }
+
+        public static ISocket Open(IPAddress address, int port, TimeSpan connectTimeout) {
+            var timeout = new ManualResetEvent(false);
+            Exception connectFailure = null;
+            var tcpClient = new TcpClient();
+            var ar = tcpClient.BeginConnect(address, port, r => {
+                try {
+                    tcpClient.EndConnect(r);
+                } catch(Exception e) {
+                    connectFailure = e;
+                } finally {
+                    timeout.Set();
+                }
+            }, null);
+
+            if(!timeout.WaitOne(connectTimeout)) {
+                tcpClient.EndConnect(ar);
+                throw new TimeoutException();
+            }
+            if(connectFailure != null) {
+                throw new ConnectException(connectFailure);
+            }
+            return new SocketAdapter(tcpClient);
+        }
+
         private readonly TcpClient _tcpClient;
 
         public SocketAdapter(TcpClient tcpClient) {

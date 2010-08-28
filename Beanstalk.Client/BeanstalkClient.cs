@@ -21,22 +21,20 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Net.Sockets;
-using System.Threading;
 using Droog.Beanstalk.Client.Protocol;
 
 namespace Droog.Beanstalk.Client {
 
     // TODO: should query the current and watched tubes at start-up, especially once there are connection pools
+    // TODO: connections currently reconnect, which will leave watched tubes in an inconsistent state (also to be fized withe connection pools)
     public class BeanstalkClient : IBeanstalkClient, IWatchedTubeClient {
 
         public static readonly TimeSpan DefaultConnectTimeout = TimeSpan.FromSeconds(10);
 
-        private readonly Func<ISocket> _socketFactory;
+        private readonly ISocket _socket;
         private readonly byte[] _buffer = new byte[16 * 1024];
         private readonly TubeCollectionProxy _watchedTubes;
         private readonly BeanstalkDefaults _defaults = new BeanstalkDefaults();
-        private ISocket _socket;
         private bool _isDisposed;
         private string _currentTube = "default";
 
@@ -45,30 +43,8 @@ namespace Droog.Beanstalk.Client {
         }
 
         public BeanstalkClient(IPAddress address, int port, TimeSpan connectTimeout)
-            : this() {
-            _socketFactory = () => {
-                var timeout = new ManualResetEvent(false);
-                Exception connectFailure = null;
-                var tcpClient = new TcpClient();
-                var ar = tcpClient.BeginConnect(address, port, r => {
-                    try {
-                        tcpClient.EndConnect(r);
-                    } catch(Exception e) {
-                        connectFailure = e;
-                    } finally {
-                        timeout.Set();
-                    }
-                }, null);
+            : this(SocketAdapter.Open(address, port, connectTimeout)) {
 
-                if(!timeout.WaitOne(connectTimeout)) {
-                    tcpClient.EndConnect(ar);
-                    throw new TimeoutException();
-                }
-                if(connectFailure != null) {
-                    throw new ConnectException(connectFailure);
-                }
-                return new SocketAdapter(tcpClient);
-            };
         }
 
         public BeanstalkClient(string host, int port)
@@ -76,43 +52,16 @@ namespace Droog.Beanstalk.Client {
         }
 
         public BeanstalkClient(string host, int port, TimeSpan connectTimeout)
-            : this() {
-            _socketFactory = () => {
-                var timeout = new ManualResetEvent(false);
-                Exception connectFailure = null;
-                var tcpClient = new TcpClient();
-                var ar = tcpClient.BeginConnect(host, port, r => {
-                    try {
-                        tcpClient.EndConnect(r);
-                    } catch(Exception e) {
-                        connectFailure = e;
-                    } finally {
-                        timeout.Set();
-                    }
-                }, null);
-
-                if(!timeout.WaitOne(connectTimeout)) {
-                    tcpClient.EndConnect(ar);
-                    throw new TimeoutException();
-                }
-                if(connectFailure != null) {
-                    throw new ConnectException(connectFailure);
-                }
-                return new SocketAdapter(tcpClient);
-            };
+            : this(SocketAdapter.Open(host, port, connectTimeout)) {
         }
 
-        public BeanstalkClient(Func<ISocket> socketFactory)
-            : this() {
-            _socketFactory = socketFactory;
-        }
-
-        private BeanstalkClient() {
+        public BeanstalkClient(ISocket socket) {
+            _socket = socket;
             _watchedTubes = new TubeCollectionProxy(this, new[] { "default" });
         }
 
         public IWatchedTubeCollection WatchedTubes { get { return _watchedTubes; } }
-        public bool Connected { get { return _socket == null ? false : _socket.Connected; } }
+        public bool IsDisposed { get { return CheckConnection(); } }
 
         public string CurrentTube {
             get {
@@ -123,10 +72,6 @@ namespace Droog.Beanstalk.Client {
                 var response = Exec(Request.Create(RequestCommand.Use).AppendArgument(value).ExpectStatuses(ResponseStatus.Using));
                 _currentTube = response.Arguments[0];
             }
-        }
-
-        public void Connect() {
-            VerifyConnection();
         }
 
         public BeanstalkDefaults Defaults {
@@ -261,15 +206,6 @@ namespace Droog.Beanstalk.Client {
             return MicroYaml.ParseList(response);
         }
 
-        public void Close() {
-            ThrowIfDisposed();
-            if(_socket == null || !_socket.Connected) {
-                return;
-            }
-            _socket.Close();
-            _socket = null;
-        }
-
         int IWatchedTubeClient.Watch(string tube) {
             var response = Exec(Request.Create(RequestCommand.Watch).AppendArgument(tube).ExpectStatuses(ResponseStatus.Watching));
             return int.Parse(response.Arguments[0]);
@@ -304,19 +240,23 @@ namespace Droog.Beanstalk.Client {
 
         private void VerifyConnection() {
             ThrowIfDisposed();
-            if(_socket != null && !_socket.Connected) {
-                _socket.Close();
-                _socket = null;
+            if(CheckConnection()) {
+                return;
             }
-            if(_socket == null) {
-                _socket = _socketFactory();
-            }
+            ThrowIfDisposed();
         }
 
         private void ThrowIfDisposed() {
             if(_isDisposed) {
                 throw new ObjectDisposedException(GetType().ToString());
             }
+        }
+
+        private bool CheckConnection() {
+            if(!_socket.Connected) {
+                _isDisposed = true;
+            }
+            return !_isDisposed;
         }
 
         public void Dispose() {
@@ -330,7 +270,7 @@ namespace Droog.Beanstalk.Client {
             if(suppressFinalizer) {
                 GC.SuppressFinalize(this);
             }
-            Close();
+            _socket.Close();
             _isDisposed = true;
         }
 

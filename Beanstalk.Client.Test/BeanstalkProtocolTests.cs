@@ -27,31 +27,15 @@ namespace Droog.Beanstalk.Client.Test {
     public class BeanstalkProtocolTests {
         private MockSocket _mockSocket;
         private BeanstalkClient _client;
-        private int _socketCreated = 0;
 
         [SetUp]
         public void Setup() {
-            _socketCreated = 0;
-            _mockSocket = new MockSocket();
-            _client = new BeanstalkClient(() => {
-                _socketCreated++;
-                _mockSocket.Connected = true;
-                return _mockSocket;
-            });
-        }
-
-        [Test]
-        public void Can_connect_to_and_disconnect_from_server() {
-            _client.Connect();
-            Assert.AreEqual(1, _socketCreated);
-            _client.Close();
-            Assert.AreEqual(1, _mockSocket.CloseCalled);
+            _mockSocket = new MockSocket { Connected = true };
+            _client = new BeanstalkClient(_mockSocket);
         }
 
         [Test]
         public void Dispose_disconnects_from_server() {
-            _client.Connect();
-            Assert.AreEqual(1, _socketCreated);
             _client.Dispose();
             Assert.AreEqual(1, _mockSocket.CloseCalled);
         }
@@ -105,7 +89,7 @@ namespace Droog.Beanstalk.Client.Test {
         [Test]
         public void Can_reserve_with_zero_timeout() {
             _mockSocket.Expect("reserve-with-timeout 0\r\n", "RESERVED 123 3\r\nbar\r\n");
-            var job = _client.Reserve(TimeSpan.FromSeconds(10));
+            var job = _client.Reserve(TimeSpan.Zero);
             _mockSocket.Verify();
             Assert.AreEqual(123, job.Id);
             Assert.AreEqual("bar", job.Data.AsText());
