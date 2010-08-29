@@ -1,4 +1,4 @@
-libBeanstalk.NET 0.1
+libBeanstalk.NET 0.5
 ==========
 A .NET driver for Beanstalkd.
 
@@ -47,7 +47,7 @@ Binary payload
 
 Patches
 =======
-Patches are welcome and will likely be accepted.  By submitting a patch you assign the copyright to me, Arne F. Claassen.  This is necessary to simplify the number of copyright holders should it become necessary that the copyright need to be re-assigned or the code re-licensed.  The code will always be available under an OSI approved license.
+Patches are welcome and will likely be accepted.  By submitting a patch you assign the copyright to me, Arne F. Claassen.  This is necessary to simplify the number of copyright holders should it become necessary that the copyright be re-assigned or the code re-licensed.  The code will always be available under an OSI approved license.
 
 Roadmap
 =======

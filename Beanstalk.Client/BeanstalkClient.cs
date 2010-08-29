@@ -61,7 +61,13 @@ namespace Droog.Beanstalk.Client {
         }
 
         public IWatchedTubeCollection WatchedTubes { get { return _watchedTubes; } }
-        public bool IsDisposed { get { return CheckConnection(); } }
+
+        public bool IsDisposed {
+            get {
+                IsConnected();
+                return _isDisposed;
+            }
+        }
 
         public string CurrentTube {
             get {
@@ -180,20 +186,21 @@ namespace Droog.Beanstalk.Client {
         }
 
         public uint Kick(uint bound) {
-            var response = Exec(Request.Create(RequestCommand.Touch)
+            var response = Exec(Request.Create(RequestCommand.Kick)
                 .AppendArgument(bound)
                 .ExpectStatuses(ResponseStatus.Kicked));
             return uint.Parse(response.Arguments[0]);
         }
 
         public JobStats GetJobStats(uint jobId) {
-            var response = Exec(Request.Create(RequestCommand.StatsJob).ExpectStatuses(ResponseStatus.Ok));
-            return new JobStats(MicroYaml.ParseDictionary(response));
+            var response = Exec(Request.Create(RequestCommand.StatsJob).AppendArgument(jobId).ExpectStatuses(ResponseStatus.Ok | ResponseStatus.NotFound));
+            return response.Status == ResponseStatus.Ok ? new JobStats(MicroYaml.ParseDictionary(response)) : null;
         }
 
         public TubeStats GetTubeStats(string tube) {
-            var response = Exec(Request.Create(RequestCommand.StatsTube).ExpectStatuses(ResponseStatus.Ok));
-            return new TubeStats(MicroYaml.ParseDictionary(response));
+            var response = Exec(Request.Create(RequestCommand.StatsTube).AppendArgument(tube).ExpectStatuses(ResponseStatus.Ok | ResponseStatus.NotFound));
+
+            return response.Status == ResponseStatus.Ok ? new TubeStats(MicroYaml.ParseDictionary(response)) : null;
         }
 
         public ServerStats GetServerStats() {
@@ -240,7 +247,7 @@ namespace Droog.Beanstalk.Client {
 
         private void VerifyConnection() {
             ThrowIfDisposed();
-            if(CheckConnection()) {
+            if(IsConnected()) {
                 return;
             }
             ThrowIfDisposed();
@@ -252,7 +259,7 @@ namespace Droog.Beanstalk.Client {
             }
         }
 
-        private bool CheckConnection() {
+        private bool IsConnected() {
             if(!_socket.Connected) {
                 _isDisposed = true;
             }
