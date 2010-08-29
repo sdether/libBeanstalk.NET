@@ -52,6 +52,7 @@
     <Compile Include="Net\ConnectionPool.cs" />
     <Compile Include="Net\IConnectionPool.cs" />
     <Compile Include="Net\ISocket.cs" />
+    <Compile Include="Net\PoolExhaustedException.cs" />
     <Compile Include="Net\PoolSocket.cs" />
     <Compile Include="Protocol\IWatchedTubeClient.cs" />
     <Compile Include="IWatchedTubeCollection.cs" />

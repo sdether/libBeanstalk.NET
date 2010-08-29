@@ -29,7 +29,7 @@ namespace Droog.Beanstalk.Client.Net {
 
         public static readonly TimeSpan DefaultConnectTimeout = TimeSpan.FromSeconds(10);
         public static readonly int DefaultMaxConnections = 100;
-        private static Dictionary<string, ConnectionPool> _pools = new Dictionary<string, ConnectionPool>();
+        private static readonly Dictionary<string, ConnectionPool> _pools = new Dictionary<string, ConnectionPool>();
 
         public static ConnectionPool GetPool(IPAddress address, int port) {
             lock(_pools) {
@@ -110,14 +110,6 @@ namespace Droog.Beanstalk.Client.Net {
                 }
                 _availableSockets.Enqueue(socket);
             }
-        }
-    }
-
-    public class PoolExhaustedException : Exception {
-        public readonly int MaxConnections;
-
-        public PoolExhaustedException(int maxConnections) {
-            MaxConnections = maxConnections;
         }
     }
 }

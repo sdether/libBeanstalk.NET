@@ -29,6 +29,10 @@ namespace Droog.Beanstalk.Client.Test {
         private Queue<MemoryStream> _receivedData = new Queue<MemoryStream>();
         private Queue<string> _sent = new Queue<string>();
 
+        public MockSocket() {
+            Connected = true;
+        }
+
         public void Dispose() {
             CloseCalled++;
             Connected = false;
