@@ -1,4 +1,4 @@
-﻿/*
+/*
  * libBeanstalk.NET 
  * Copyright (C) 2010 Arne F. Claassen
  * geekblog [at] claassen [dot] net
@@ -16,11 +16,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-namespace Droog.Beanstalk.Client.Protocol {
-    public interface ISocket {
-        void Close();
-        bool Connected { get; }
-        int Send(byte[] buffer, int offset, int size);
-        int Receive(byte[] buffer, int offset, int size);
+
+namespace Droog.Beanstalk.Client.Net {
+    public interface IConnectionPool {
+        ISocket GetSocket();    
     }
 }

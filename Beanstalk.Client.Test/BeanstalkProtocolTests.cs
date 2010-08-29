@@ -32,7 +32,15 @@ namespace Droog.Beanstalk.Client.Test {
         [SetUp]
         public void Setup() {
             _mockSocket = new MockSocket { Connected = true };
+            _mockSocket.Expect("use default\r\n", "USING default\r\n");
+            _mockSocket.Expect("list-tubes-watched\r\n", "OK 16\r\n---\r\n- default\r\n\r\n");
             _client = new BeanstalkClient(_mockSocket);
+        }
+
+        [Test]
+        public void Creating_client_sets_tube_and_watched_tubes() {
+            Assert.AreEqual("default", _client.CurrentTube);
+            Assert.AreEqual(new[] { "default" }, _client.WatchedTubes.ToArray());
         }
 
         [Test]
@@ -43,9 +51,9 @@ namespace Droog.Beanstalk.Client.Test {
 
         [Test]
         public void Socket_disconnection_disposes_client() {
-            Assert.IsFalse(_client.IsDisposed);
+            Assert.IsFalse(_client.Disposed);
             _mockSocket.Connected = false;
-            Assert.IsTrue(_client.IsDisposed);
+            Assert.IsTrue(_client.Disposed);
         }
 
         [Test]
@@ -487,7 +495,7 @@ namespace Droog.Beanstalk.Client.Test {
             _mockSocket.Expect("list-tubes\r\n", "OK 23\r\n---\r\n- default\r\n- other\r\n");
             var tubes = _client.GetTubes();
             _mockSocket.Verify();
-            Assert.AreEqual(new[]{"default","other"},tubes.OrderBy(x =>x).ToArray());
+            Assert.AreEqual(new[] { "default", "other" }, tubes.OrderBy(x => x).ToArray());
         }
     }
 }

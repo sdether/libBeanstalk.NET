@@ -34,13 +34,16 @@ namespace Droog.Beanstalk.Client {
         protected ConnectionException(string message) : base(message) { }
 
     }
+
     public class ReadException : ConnectionException {
         public ReadException(string message) : base(message) { }
+
     }
     public class WriteException : ConnectionException { }
     public class TimedoutException : BeanstalkClientException { }
     public class DeadlineSoonException : BeanstalkClientException { }
     public class ShouldNeverHappenException : BeanstalkClientException { }
+    public class InitException : BeanstalkClientException { }
 
     public class ConnectException : BeanstalkClientException {
         public ConnectException(Exception exception)

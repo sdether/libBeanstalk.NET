@@ -19,6 +19,7 @@
 using System;
 using System.IO;
 using System.Text;
+using Droog.Beanstalk.Client.Net;
 
 namespace Droog.Beanstalk.Client.Protocol {
     public static class Extensions {

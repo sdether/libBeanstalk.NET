@@ -27,7 +27,7 @@ namespace Droog.Beanstalk.Client
     {
 
         // Connection state related
-        bool IsDisposed { get; }
+        bool Disposed { get; }
         
         // Consumer related
         string CurrentTube { get; set; }

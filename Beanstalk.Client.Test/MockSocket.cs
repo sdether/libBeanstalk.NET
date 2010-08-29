@@ -17,18 +17,19 @@
  * limitations under the License.
  */
 using System;
+using System.Collections.Generic;
 using System.IO;
-using Droog.Beanstalk.Client.Protocol;
+using Droog.Beanstalk.Client.Net;
 using NUnit.Framework;
 
 namespace Droog.Beanstalk.Client.Test {
     public class MockSocket : ISocket {
         public int CloseCalled;
-        private MemoryStream _sentData = new MemoryStream();
-        private MemoryStream _receivedData = new MemoryStream();
-        private string _sent;
+        private Queue<MemoryStream> _sentData = new Queue<MemoryStream>();
+        private Queue<MemoryStream> _receivedData = new Queue<MemoryStream>();
+        private Queue<string> _sent = new Queue<string>();
 
-        public void Close() {
+        public void Dispose() {
             CloseCalled++;
             Connected = false;
         }
@@ -36,22 +37,29 @@ namespace Droog.Beanstalk.Client.Test {
         public bool Connected { get; set; }
 
         public int Send(byte[] buffer, int offset, int size) {
-            _sentData.Write(buffer, offset, size);
+            var data = new MemoryStream();
+            data.Write(buffer, offset, size);
+            _sentData.Enqueue(data);
             return size;
         }
 
         public int Receive(byte[] buffer, int offset, int size) {
-            return _receivedData.Read(buffer, offset, size);
+            var data = _receivedData.Dequeue();
+            return data.Read(buffer, offset, size);
         }
 
         public void Expect(string sent, string received) {
-            _receivedData = received.AsStream();
-            _sent = sent;
-            _sentData = new MemoryStream();
+            _receivedData.Enqueue(received.AsStream());
+            _sent.Enqueue(sent);
         }
 
         public void Verify() {
-            Assert.AreEqual(_sent, _sentData.AsText());
+            Assert.AreEqual(_sent.Count, _sentData.Count);
+            while(_sent.Count > 0 ) {
+                var sent = _sent.Dequeue();
+                var data = _sentData.Dequeue();
+                Assert.AreEqual(sent, data.AsText());
+            }
         }
     }
 }

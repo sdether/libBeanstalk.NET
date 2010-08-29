@@ -19,6 +19,7 @@
 
 using System.IO;
 using System.Text;
+using Droog.Beanstalk.Client.Net;
 using Droog.Beanstalk.Client.Protocol;
 using Moq;
 using NUnit.Framework;

@@ -21,7 +21,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 
-namespace Droog.Beanstalk.Client.Protocol {
+namespace Droog.Beanstalk.Client.Net {
     public class SocketAdapter : ISocket {
 
         public static ISocket Open(string host, int port, TimeSpan connectTimeout) {
@@ -78,7 +78,7 @@ namespace Droog.Beanstalk.Client.Protocol {
             _tcpClient = tcpClient;
         }
 
-        public void Close() {
+        public void Dispose() {
             _tcpClient.Close();
         }
 
