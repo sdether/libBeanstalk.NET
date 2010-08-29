@@ -26,9 +26,7 @@ using Droog.Beanstalk.Client.Protocol;
 
 namespace Droog.Beanstalk.Client {
 
-    // TODO: a lot of cut/paste try/_socket.Dispose.. wrap in a return helper T Return(Func<T>)?
     public class BeanstalkClient : IBeanstalkClient, IWatchedTubeClient {
-
 
         private readonly ISocket _socket;
         private readonly byte[] _buffer = new byte[16 * 1024];
@@ -73,7 +71,8 @@ namespace Droog.Beanstalk.Client {
                 watched = client.Ignore(tube);
             }
             if(watched != 1) {
-                Throw(new InitException());
+                _socket.Dispose();
+                throw new InitException();
             }
         }
 
@@ -81,7 +80,7 @@ namespace Droog.Beanstalk.Client {
 
         public bool Disposed {
             get {
-                IsConnected();
+                Connected();
                 return _disposed;
             }
         }
@@ -108,51 +107,36 @@ namespace Droog.Beanstalk.Client {
                 .AppendArgument(timeToRun)
                 .WithData(request, length)
                 .ExpectStatuses(ResponseStatus.Inserted | ResponseStatus.Buried | ResponseStatus.ExpectedCrlf | ResponseStatus.JobTooBig));
-            try {
-                if(response.Status == ResponseStatus.Inserted || response.Status == ResponseStatus.Buried) {
-                    return new PutResponse(response.Status == ResponseStatus.Buried, uint.Parse(response.Arguments[0]));
-                }
-                throw new PutFailedException(response.Status);
-            } catch(Exception) {
-                _socket.Dispose();
-                throw;
+            if(response.Status == ResponseStatus.Inserted || response.Status == ResponseStatus.Buried) {
+                return new PutResponse(response.Status == ResponseStatus.Buried, uint.Parse(response.Arguments[0]));
             }
+            throw new PutFailedException(response.Status);
         }
 
         public Job Reserve() {
             var response = Exec(Request.Create(RequestCommand.Reserve).ExpectStatuses(ResponseStatus.DeadlineSoon | ResponseStatus.Reserved));
-            try {
-                switch(response.Status) {
-                    case ResponseStatus.Reserved:
-                        return new Job(uint.Parse(response.Arguments[0]), response.Data, long.Parse(response.Arguments[1]));
-                    case ResponseStatus.DeadlineSoon:
-                        throw new DeadlineSoonException();
-                }
-                throw new ShouldNeverHappenException();
-            } catch(Exception) {
-                _socket.Dispose();
-                throw;
+            switch(response.Status) {
+                case ResponseStatus.Reserved:
+                    return new Job(uint.Parse(response.Arguments[0]), response.Data, long.Parse(response.Arguments[1]));
+                case ResponseStatus.DeadlineSoon:
+                    throw new DeadlineSoonException();
             }
+            throw new ShouldNeverHappenException();
         }
 
         public Job Reserve(TimeSpan timeout) {
             var response = Exec(Request.Create(RequestCommand.ReserveWithTimeout)
                 .AppendArgument(timeout)
                 .ExpectStatuses(ResponseStatus.DeadlineSoon | ResponseStatus.TimedOut | ResponseStatus.Reserved));
-            try {
-                switch(response.Status) {
-                    case ResponseStatus.Reserved:
-                        return new Job(uint.Parse(response.Arguments[0]), response.Data, long.Parse(response.Arguments[1]));
-                    case ResponseStatus.TimedOut:
-                        throw new TimedoutException();
-                    case ResponseStatus.DeadlineSoon:
-                        throw new DeadlineSoonException();
-                }
-                throw new ShouldNeverHappenException();
-            } catch(Exception) {
-                _socket.Dispose();
-                throw;
+            switch(response.Status) {
+                case ResponseStatus.Reserved:
+                    return new Job(uint.Parse(response.Arguments[0]), response.Data, long.Parse(response.Arguments[1]));
+                case ResponseStatus.TimedOut:
+                    throw new TimedoutException();
+                case ResponseStatus.DeadlineSoon:
+                    throw new DeadlineSoonException();
             }
+            throw new ShouldNeverHappenException();
         }
 
         public ReservationStatus TryReserve(TimeSpan timeout, out Job job) {
@@ -221,94 +205,49 @@ namespace Droog.Beanstalk.Client {
             var response = Exec(Request.Create(RequestCommand.Kick)
                 .AppendArgument(bound)
                 .ExpectStatuses(ResponseStatus.Kicked));
-            try {
-                return uint.Parse(response.Arguments[0]);
-            } catch(Exception) {
-                _socket.Dispose();
-                throw;
-            }
+            return uint.Parse(response.Arguments[0]);
         }
 
         public JobStats GetJobStats(uint jobId) {
             var response = Exec(Request.Create(RequestCommand.StatsJob).AppendArgument(jobId).ExpectStatuses(ResponseStatus.Ok | ResponseStatus.NotFound));
-            try {
-                return response.Status == ResponseStatus.Ok ? new JobStats(MicroYaml.ParseDictionary(response)) : null;
-            } catch(Exception) {
-                _socket.Dispose();
-                throw;
-            }
+            return response.Status == ResponseStatus.Ok ? new JobStats(MicroYaml.ParseDictionary(response)) : null;
         }
 
         public TubeStats GetTubeStats(string tube) {
             var response = Exec(Request.Create(RequestCommand.StatsTube).AppendArgument(tube).ExpectStatuses(ResponseStatus.Ok | ResponseStatus.NotFound));
-            try {
-                return response.Status == ResponseStatus.Ok ? new TubeStats(MicroYaml.ParseDictionary(response)) : null;
-            } catch(Exception) {
-                _socket.Dispose();
-                throw;
-            }
+            return response.Status == ResponseStatus.Ok ? new TubeStats(MicroYaml.ParseDictionary(response)) : null;
         }
 
         public ServerStats GetServerStats() {
             var response = Exec(Request.Create(RequestCommand.Stats).ExpectStatuses(ResponseStatus.Ok));
-            try {
-                return new ServerStats(MicroYaml.ParseDictionary(response));
-            } catch(Exception) {
-                _socket.Dispose();
-                throw;
-            }
+            return new ServerStats(MicroYaml.ParseDictionary(response));
         }
 
         public IEnumerable<string> GetTubes() {
             var response = Exec(Request.Create(RequestCommand.ListTubes).ExpectStatuses(ResponseStatus.Ok));
-            try {
-                return MicroYaml.ParseList(response);
-            } catch(Exception) {
-                _socket.Dispose();
-                throw;
-            }
+            return MicroYaml.ParseList(response);
         }
 
         int IWatchedTubeClient.Watch(string tube) {
             var response = Exec(Request.Create(RequestCommand.Watch).AppendArgument(tube).ExpectStatuses(ResponseStatus.Watching));
-            try {
-                return int.Parse(response.Arguments[0]);
-            } catch(Exception) {
-                _socket.Dispose();
-                throw;
-            }
+            return int.Parse(response.Arguments[0]);
         }
 
         int IWatchedTubeClient.Ignore(string tube) {
             var response = Exec(Request.Create(RequestCommand.Ignore).AppendArgument(tube).ExpectStatuses(ResponseStatus.Watching | ResponseStatus.NotIgnored));
-            try {
-                return response.Status == ResponseStatus.Watching ? int.Parse(response.Arguments[0]) : 0;
-            } catch(Exception) {
-                _socket.Dispose();
-                throw;
-            }
+            return response.Status == ResponseStatus.Watching ? int.Parse(response.Arguments[0]) : 0;
         }
 
         IEnumerable<string> IWatchedTubeClient.ListWatchedTubes() {
             var response = Exec(Request.Create(RequestCommand.ListTubesWatched).ExpectStatuses(ResponseStatus.Ok));
-            try {
-                return MicroYaml.ParseList(response);
-            } catch(Exception) {
-                _socket.Dispose();
-                throw;
-            }
+            return MicroYaml.ParseList(response);
         }
 
         private Job Peek(Request request) {
             var response = Exec(request.ExpectStatuses(ResponseStatus.Found | ResponseStatus.NotFound));
-            try {
-                return response.Status == ResponseStatus.NotFound
-                    ? null
-                    : new Job(uint.Parse(response.Arguments[0]), response.Data, long.Parse(response.Arguments[1]));
-            } catch(Exception) {
-                _socket.Dispose();
-                throw;
-            }
+            return response.Status == ResponseStatus.NotFound
+                ? null
+                : new Job(uint.Parse(response.Arguments[0]), response.Data, long.Parse(response.Arguments[1]));
         }
 
         private Response Exec(Request request) {
@@ -316,14 +255,14 @@ namespace Droog.Beanstalk.Client {
             _socket.SendRequest(request, _buffer);
             var response = _socket.ReceiveResponse(_buffer);
             if((response.Status & request.ExpectedStatuses) != response.Status) {
-                Throw(new InvalidStatusException(request.Command, response.Status));
+                throw new InvalidStatusException(request.Command, response.Status);
             }
             return response;
         }
 
         private void VerifyConnection() {
             ThrowIfDisposed();
-            if(IsConnected()) {
+            if(Connected()) {
                 return;
             }
             ThrowIfDisposed();
@@ -335,12 +274,7 @@ namespace Droog.Beanstalk.Client {
             }
         }
 
-        private void Throw(BeanstalkClientException exception) {
-            _socket.Dispose();
-            throw exception;
-        }
-
-        private bool IsConnected() {
+        private bool Connected() {
             if(!_socket.Connected) {
                 _socket.Dispose();
                 _disposed = true;

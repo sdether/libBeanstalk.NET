@@ -24,6 +24,7 @@ namespace Droog.Beanstalk.Client.Net {
 
     // TODO: need to timeout idle sockets
     // TODO: need to remove idle pools
+    // TODO: keep weak ref to PoolSocket to reap connections from improperly closed clients?
     public class ConnectionPool : IConnectionPool {
 
         public static readonly TimeSpan DefaultConnectTimeout = TimeSpan.FromSeconds(10);
