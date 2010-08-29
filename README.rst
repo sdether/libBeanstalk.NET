@@ -2,6 +2,8 @@ libBeanstalk.NET 0.5
 ==========
 A .NET driver for Beanstalkd.
 
+Note: until the driver reaches 1.0, the API is still likely to change between commits.
+
 License
 =======
 Apache 2.0
