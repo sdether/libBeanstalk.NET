@@ -21,7 +21,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 
-namespace Droog.Beanstalk.Client.Net {
+namespace Droog.Beanstalk.Client.Net.Helper {
     public class SocketAdapter : ISocket {
 
         public static ISocket Open(string host, int port, TimeSpan connectTimeout) {

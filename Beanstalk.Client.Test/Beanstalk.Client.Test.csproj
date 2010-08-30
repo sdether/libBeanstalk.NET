@@ -61,6 +61,7 @@
     <Compile Include="ConnectionPoolTests.cs" />
     <Compile Include="ExtensionTests.cs" />
     <Compile Include="MockSocket.cs" />
+    <Compile Include="PoolSocketTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RequestTests.cs" />
     <Compile Include="TestExtensions.cs" />

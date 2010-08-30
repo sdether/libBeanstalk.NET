@@ -46,7 +46,7 @@ namespace Droog.Beanstalk.Client.Test {
         [Test]
         public void Dispose_disconnects_from_server() {
             _client.Dispose();
-            Assert.AreEqual(1, _mockSocket.CloseCalled);
+            Assert.AreEqual(1, _mockSocket.DisposeCalled);
         }
 
         [Test]

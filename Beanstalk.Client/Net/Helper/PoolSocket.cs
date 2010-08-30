@@ -18,7 +18,7 @@
  */
 using System;
 
-namespace Droog.Beanstalk.Client.Net {
+namespace Droog.Beanstalk.Client.Net.Helper {
     public class PoolSocket : ISocket {
         private readonly ISocket _socket;
         private readonly Action<ISocket> _reclaim;

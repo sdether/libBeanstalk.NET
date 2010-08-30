@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Threading;
 using Droog.Beanstalk.Client.Net;
 using NUnit.Framework;
 
@@ -55,8 +56,7 @@ namespace Droog.Beanstalk.Client.Test {
 
         public void Too_many_busy_connections_throws() {
             Func<ISocket> socketFactory = () => new MockSocket();
-            var pool = new ConnectionPool(socketFactory);
-            pool.MaxConnections = 5;
+            var pool = new ConnectionPool(socketFactory) { MaxConnections = 5 };
             var s1 = pool.GetSocket();
             var s2 = pool.GetSocket();
             var s3 = pool.GetSocket();
@@ -70,6 +70,21 @@ namespace Droog.Beanstalk.Client.Test {
             } catch(Exception e) {
                 Assert.Fail(string.Format("threw {0} instead of PoolExhaustedException", e));
             }
+        }
+
+        [Test]
+        public void When_pool_has_too_many_connections_and_gc_has_run_unreferenced_busy_sockets_are_collected() {
+            Func<ISocket> socketFactory = () => new MockSocket();
+            var pool = new ConnectionPool(socketFactory) { MaxConnections = 5 };
+            var s1 = pool.GetSocket();
+            var s2 = pool.GetSocket();
+            var s3 = pool.GetSocket();
+            var s4 = pool.GetSocket();
+            var s5 = pool.GetSocket();
+            s5 = null;
+            GC.Collect();
+            var s6 = pool.GetSocket();
+            Assert.IsNotNull(s6);
         }
 
         [Test]
@@ -132,6 +147,78 @@ namespace Droog.Beanstalk.Client.Test {
             s1.Dispose();
             var s2 = pool.GetSocket();
             Assert.AreEqual(2, sockets.Count);
+        }
+
+        [Test]
+        public void Disconnected_socket_in_available_pool_is_disposed_on_attempted_reuse() {
+            var sockets = new List<MockSocket>();
+            Func<ISocket> socketFactory = () => {
+                var socket = new MockSocket();
+                sockets.Add(socket);
+                return socket;
+            };
+            var pool = new ConnectionPool(socketFactory);
+            var s1 = pool.GetSocket();
+            s1.Dispose();
+            Assert.AreEqual(1, sockets.Count);
+            sockets[0].Dispose();
+            var s2 = pool.GetSocket();
+            Assert.AreEqual(2, sockets.Count);
+        }
+
+        [Test]
+        public void Disconnected_busy_sockets_are_collected_at_cleanup() {
+            var sockets = new List<MockSocket>();
+            Func<ISocket> socketFactory = () => {
+                var socket = new MockSocket();
+                sockets.Add(socket);
+                return socket;
+            };
+            var pool = new ConnectionPool(socketFactory) { CleanupInterval = TimeSpan.FromSeconds(1) };
+            var s = pool.GetSocket();
+            sockets[0].Connected = false;
+            Assert.AreEqual(0, sockets[0].DisposeCalled);
+            Wait(() => sockets[0].DisposeCalled > 0, TimeSpan.FromSeconds(5), "socket didn't get cleaned up");
+        }
+
+        [Test]
+        public void Unreferenced_busy_sockets_are_collected_at_cleanup() {
+            var sockets = new List<MockSocket>();
+            Func<ISocket> socketFactory = () => {
+                var socket = new MockSocket();
+                sockets.Add(socket);
+                return socket;
+            };
+            var pool = new ConnectionPool(socketFactory) { CleanupInterval = TimeSpan.FromSeconds(1) };
+            pool.GetSocket();
+            Assert.AreEqual(0, sockets[0].DisposeCalled);
+            GC.Collect();
+            Wait(() => sockets[0].DisposeCalled > 0, TimeSpan.FromSeconds(5), "socket didn't get cleaned up");
+        }
+
+        [Test]
+        public void Idle_available_socket_is_collected_at_cleanup() {
+            var sockets = new List<MockSocket>();
+            Func<ISocket> socketFactory = () => {
+                var socket = new MockSocket();
+                sockets.Add(socket);
+                return socket;
+            };
+            var pool = new ConnectionPool(socketFactory) { CleanupInterval = TimeSpan.FromSeconds(1) };
+            pool.GetSocket().Dispose();
+            Assert.AreEqual(0, sockets[0].DisposeCalled);
+            Wait(() => sockets[0].DisposeCalled > 0, TimeSpan.FromSeconds(5), "socket didn't get cleaned up");
+        }
+
+        private void Wait(Func<bool> func, TimeSpan timeout, string failMessage) {
+            var end = DateTime.UtcNow.Add(timeout);
+            while(DateTime.UtcNow < end) {
+                Thread.Sleep(200);
+                if(func()) {
+                    return;
+                }
+            }
+            Assert.Fail(failMessage);
         }
     }
 }

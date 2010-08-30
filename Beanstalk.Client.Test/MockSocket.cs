@@ -24,7 +24,7 @@ using NUnit.Framework;
 
 namespace Droog.Beanstalk.Client.Test {
     public class MockSocket : ISocket {
-        public int CloseCalled;
+        public int DisposeCalled;
         private Queue<MemoryStream> _sentData = new Queue<MemoryStream>();
         private Queue<MemoryStream> _receivedData = new Queue<MemoryStream>();
         private Queue<string> _sent = new Queue<string>();
@@ -34,7 +34,7 @@ namespace Droog.Beanstalk.Client.Test {
         }
 
         public void Dispose() {
-            CloseCalled++;
+            DisposeCalled++;
             Connected = false;
         }
 
