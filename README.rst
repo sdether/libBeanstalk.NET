@@ -1,4 +1,4 @@
-libBeanstalk.NET 0.5
+libBeanstalk.NET 0.6
 ==========
 A .NET driver for Beanstalkd.
 
@@ -51,11 +51,15 @@ Patches
 =======
 Patches are welcome and will likely be accepted.  By submitting a patch you assign the copyright to me, Arne F. Claassen.  This is necessary to simplify the number of copyright holders should it become necessary that the copyright be re-assigned or the code re-licensed.  The code will always be available under an OSI approved license.
 
+Articles
+========
+- libBeanstalk.NET, a Beanstalkd client for .NET/mono
+  ( http://www.claassen.net/geek/blog/2010/08/libbeanstalk-net-a-beanstalkd-client-for-netmono.html )
+
 Roadmap
 =======
-- Add more tests
-- Add connection pooling
 - Add POCO producers and consumers with configurable serializers
+- Add IObservable support
 
 Contributors
 ============
