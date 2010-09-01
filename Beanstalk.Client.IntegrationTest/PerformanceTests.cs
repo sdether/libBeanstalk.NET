@@ -79,8 +79,8 @@ namespace Droog.Beanstalk.Client.IntegrationTest {
             var pool = ConnectionPool.GetPool(TestConfig.Host, TestConfig.Port);
             var goSignal = new ManualResetEvent(false);
             var n = 10000;
-            var enqueue = 10;
-            var dequeue = 6;
+            var enqueue = 7;
+            var dequeue = 5;
             var data = new List<MemoryStream>();
             for(var i = 0; i < n; i++) {
                 data.Add(("data-" + i).AsStream());
@@ -88,7 +88,7 @@ namespace Droog.Beanstalk.Client.IntegrationTest {
             var idx = -1;
             var r = new Random();
             var enqueued = 0;
-            WaitCallback enqueueWorker = id => {
+            ParameterizedThreadStart enqueueWorker = id => {
                 goSignal.WaitOne();
                 Thread.Sleep((int)id * 100);
                 Console.WriteLine("enqueue worker {0:00} started", id);
@@ -106,9 +106,9 @@ namespace Droog.Beanstalk.Client.IntegrationTest {
                 Console.WriteLine("enqueue worker {0:00} finished", id);
             };
             var dequeued = 0;
-            WaitCallback dequeueWorker = id => {
+            ParameterizedThreadStart dequeueWorker = id => {
                 goSignal.WaitOne();
-                Thread.Sleep(200 + (int)id * 100);
+                Thread.Sleep(500 + (int)id * 100);
                 Console.WriteLine("dequeue worker {0:00} started", id);
                 var client = new BeanstalkClient(pool);
                 while(true) {
@@ -124,17 +124,19 @@ namespace Droog.Beanstalk.Client.IntegrationTest {
                 Console.WriteLine("dequeue worker {0:00} finished", id);
             };
             for(var i = 0; i < dequeue; i++) {
-                ThreadPool.QueueUserWorkItem(dequeueWorker, i);
+                new Thread(dequeueWorker).Start(i);
             }
             for(var i = 0; i < enqueue; i++) {
-                ThreadPool.QueueUserWorkItem(enqueueWorker, i);
+                new Thread(enqueueWorker).Start(i);
             }
             Thread.Sleep(1000);
             goSignal.Set();
             while(dequeued < n) {
-                Thread.Sleep(500);
                 Console.WriteLine("{0}>{1} - busy: {2}, idle: {3}", dequeued, enqueued, pool.ActiveConnections, pool.IdleConnections);
+                Thread.Sleep(200);
             }
+            Thread.Sleep(1000);
+            Console.WriteLine("{0}>{1} - busy: {2}, idle: {3}", dequeued, enqueued, pool.ActiveConnections, pool.IdleConnections);
         }
 
         private BeanstalkClient CreateClient() {

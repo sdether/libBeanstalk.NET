@@ -20,6 +20,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using Droog.Beanstalk.Client.Net;
 using Droog.Beanstalk.Client.Test;
 using NUnit.Framework;
 
@@ -40,6 +41,43 @@ namespace Droog.Beanstalk.Client.IntegrationTest {
                     Assert.AreEqual(data, reader.ReadToEnd());
                 }
             }
+        }
+
+        [Test]
+        public void Sequential_clients_reuse_connection() {
+            var pool = ConnectionPool.Create(TestConfig.Host, TestConfig.Port);
+            Assert.AreEqual(0, pool.ActiveConnections);
+            Assert.AreEqual(0, pool.IdleConnections);
+            using(var client = new BeanstalkClient(pool)) {
+                var data = "abc";
+                var stream = data.AsStream();
+                var put = client.Put(100, TimeSpan.Zero, TimeSpan.FromMinutes(2), stream, data.Length);
+                var reserve = client.Reserve();
+                Assert.AreEqual(put.JobId, reserve.Id);
+                Assert.IsTrue(client.Delete(reserve.Id));
+                using(var reader = new StreamReader(reserve.Data)) {
+                    Assert.AreEqual(data, reader.ReadToEnd());
+                }
+                Assert.AreEqual(1, pool.ActiveConnections);
+                Assert.AreEqual(0, pool.IdleConnections);
+            }
+            Assert.AreEqual(0, pool.ActiveConnections);
+            Assert.AreEqual(1, pool.IdleConnections);
+            using(var client = new BeanstalkClient(pool)) {
+                var data = "abc";
+                var stream = data.AsStream();
+                var put = client.Put(100, TimeSpan.Zero, TimeSpan.FromMinutes(2), stream, data.Length);
+                var reserve = client.Reserve();
+                Assert.AreEqual(put.JobId, reserve.Id);
+                Assert.IsTrue(client.Delete(reserve.Id));
+                using(var reader = new StreamReader(reserve.Data)) {
+                    Assert.AreEqual(data, reader.ReadToEnd());
+                }
+                Assert.AreEqual(1, pool.ActiveConnections);
+                Assert.AreEqual(0, pool.IdleConnections);
+            }
+            Assert.AreEqual(0, pool.ActiveConnections);
+            Assert.AreEqual(1, pool.IdleConnections);
         }
 
         [Test]
