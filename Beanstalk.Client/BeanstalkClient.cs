@@ -48,6 +48,9 @@ namespace Droog.Beanstalk.Client {
         }
 
         public BeanstalkClient(ISocket socket) {
+            if (socket == null) {
+                throw new ArgumentNullException("socket");
+            }
             _socket = socket;
             InitSocket();
             _currentTube = "default";

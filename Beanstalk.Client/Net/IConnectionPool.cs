@@ -19,6 +19,8 @@
 
 namespace Droog.Beanstalk.Client.Net {
     public interface IConnectionPool {
-        ISocket GetSocket();    
+        int ActiveConnections { get; }
+        int IdleConnections { get; }
+        ISocket GetSocket();
     }
 }

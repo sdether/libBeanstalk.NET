@@ -107,6 +107,22 @@ namespace Droog.Beanstalk.Client.Net {
             }
         }
 
+        public int ActiveConnections {
+            get {
+                lock(_availableSockets) {
+                    return _busySockets.Count;
+                }
+            }
+        }
+
+        public int IdleConnections {
+            get {
+                lock(_availableSockets) {
+                    return _availableSockets.Count;
+                }
+            }
+        }
+
         public ISocket GetSocket() {
             lock(_availableSockets) {
                 ISocket socket = null;

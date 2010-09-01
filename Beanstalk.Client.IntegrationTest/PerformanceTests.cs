@@ -22,6 +22,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
+using Droog.Beanstalk.Client.Net;
 using Droog.Beanstalk.Client.Test;
 using NUnit.Framework;
 
@@ -71,6 +73,70 @@ namespace Droog.Beanstalk.Client.IntegrationTest {
                 Console.WriteLine("delete: {0:0} items/sec", n / stopwatch.Elapsed.TotalSeconds);
             }
         }
+
+        [Test]
+        public void Bulk_put_reserve_delete_with_multiple_connections() {
+            var pool = ConnectionPool.GetPool(TestConfig.Host, TestConfig.Port);
+            var goSignal = new ManualResetEvent(false);
+            var n = 10000;
+            var enqueue = 10;
+            var dequeue = 6;
+            var data = new List<MemoryStream>();
+            for(var i = 0; i < n; i++) {
+                data.Add(("data-" + i).AsStream());
+            }
+            var idx = -1;
+            var r = new Random();
+            var enqueued = 0;
+            WaitCallback enqueueWorker = id => {
+                goSignal.WaitOne();
+                Thread.Sleep((int)id * 100);
+                Console.WriteLine("enqueue worker {0:00} started", id);
+                var client = new BeanstalkClient(pool);
+                while(true) {
+                    var i = Interlocked.Increment(ref idx);
+                    if(i >= n) {
+                        break;
+                    }
+                    var item = data[i];
+                    Interlocked.Increment(ref enqueued);
+                    client.Put(100, TimeSpan.Zero, TimeSpan.FromMinutes(2), item, item.Length);
+                }
+                client.Dispose();
+                Console.WriteLine("enqueue worker {0:00} finished", id);
+            };
+            var dequeued = 0;
+            WaitCallback dequeueWorker = id => {
+                goSignal.WaitOne();
+                Thread.Sleep(200 + (int)id * 100);
+                Console.WriteLine("dequeue worker {0:00} started", id);
+                var client = new BeanstalkClient(pool);
+                while(true) {
+                    try {
+                        var job = client.Reserve(TimeSpan.Zero);
+                        client.Delete(job.Id);
+                        Interlocked.Increment(ref dequeued);
+                    } catch(TimedoutException) {
+                        break;
+                    }
+                }
+                client.Dispose();
+                Console.WriteLine("dequeue worker {0:00} finished", id);
+            };
+            for(var i = 0; i < dequeue; i++) {
+                ThreadPool.QueueUserWorkItem(dequeueWorker, i);
+            }
+            for(var i = 0; i < enqueue; i++) {
+                ThreadPool.QueueUserWorkItem(enqueueWorker, i);
+            }
+            Thread.Sleep(1000);
+            goSignal.Set();
+            while(dequeued < n) {
+                Thread.Sleep(500);
+                Console.WriteLine("{0}>{1} - busy: {2}, idle: {3}", dequeued, enqueued, pool.ActiveConnections, pool.IdleConnections);
+            }
+        }
+
         private BeanstalkClient CreateClient() {
             return new BeanstalkClient(TestConfig.Host, TestConfig.Port);
         }
