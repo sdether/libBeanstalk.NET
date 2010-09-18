@@ -1,4 +1,4 @@
-﻿/*
+/*
  * libBeanstalk.NET 
  * Copyright (C) 2010 Arne F. Claassen
  * geekblog [at] claassen [dot] net
@@ -16,13 +16,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
 namespace Droog.Beanstalk.Client {
-    public interface IBeanstalkProducer<T> {
-        PutResponse Put(uint priority, TimeSpan delay, TimeSpan timeToRun, T data);
+    public enum WorkStatus {
+        Active,
+        Deleted,
+        Released,
     }
 }
