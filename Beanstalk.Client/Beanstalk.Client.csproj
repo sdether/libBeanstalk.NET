@@ -49,6 +49,8 @@
     <Compile Include="BeanstalkClientExceptions.cs" />
     <Compile Include="BeanstalkDefaults.cs" />
     <Compile Include="BeanstalkExtensions.cs" />
+    <Compile Include="IBeanstalkProducer.cs" />
+    <Compile Include="JobState.cs" />
     <Compile Include="Net\ConnectionPool.cs" />
     <Compile Include="Net\IConnectionPool.cs" />
     <Compile Include="Net\ISocket.cs" />
@@ -77,6 +79,7 @@
     <Compile Include="Protocol\Response.cs" />
     <Compile Include="Protocol\ResponseInfo.cs" />
     <Compile Include="Protocol\ResponseStatus.cs" />
+    <Compile Include="Util\TypeConverter.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
