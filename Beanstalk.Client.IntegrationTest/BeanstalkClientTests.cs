@@ -110,6 +110,8 @@ namespace Droog.Beanstalk.Client.IntegrationTest {
             using(var client = CreateClient()) {
                 var stats = client.GetServerStats();
                 Assert.IsNotNull(stats["version"]);
+                Assert.AreEqual(stats.Version, stats["version"]);
+                Assert.Greater(stats.Uptime,TimeSpan.Zero);
             }
         }
 
