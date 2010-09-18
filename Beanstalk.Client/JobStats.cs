@@ -17,11 +17,24 @@
  * limitations under the License.
  */
 
+using System;
 using System.Collections.Generic;
 using Droog.Beanstalk.Client.Protocol;
+using Droog.Beanstalk.Client.Util;
 
 namespace Droog.Beanstalk.Client {
     public class JobStats : StatsBase {
         public JobStats(IDictionary<string, string> dictionary) : base(dictionary) { }
+
+        public uint Id { get { return this["id"].As<uint>(); } }
+        public string Tube { get { return this["tube"]; } }
+        public JobState State { get { return this["state"].As<JobState>(); } }
+        public TimeSpan Age { get { return TimeSpan.FromSeconds(this["age"].As<uint>()); } }
+        public uint Priority { get { return this["pri"].As<uint>(); } }
+        public TimeSpan TimeLeft { get { return TimeSpan.FromSeconds(this["time-left"].As<uint>()); } }
+        public uint Timeouts { get { return this["timeouts"].As<uint>(); } }
+        public uint Releases { get { return this["releases"].As<uint>(); } }
+        public uint Buries { get { return this["buries"].As<uint>(); } }
+        public uint Kicks { get { return this["kicks"].As<uint>(); } }
     }
 }

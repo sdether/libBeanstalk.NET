@@ -19,9 +19,19 @@
 
 using System.Collections.Generic;
 using Droog.Beanstalk.Client.Protocol;
+using Droog.Beanstalk.Client.Util;
 
 namespace Droog.Beanstalk.Client {
     public class TubeStats : StatsBase {
         public TubeStats(IDictionary<string, string> dictionary) : base(dictionary) { }
+
+        public string Name { get { return this["name"]; } }
+        public uint CurrentUrgentJobs { get { return this["current-jobs-urgent"].As<uint>(); } }
+        public uint CurrentReadyJobs { get { return this["current-jobs-ready"].As<uint>(); } }
+        public uint CurrentReservedJobs { get { return this["current-jobs-reserved"].As<uint>(); } }
+        public uint CurrentDelayedJobs { get { return this["current-jobs-delayed"].As<uint>(); } }
+        public uint CurrentBuriedJobs { get { return this["current-jobs-buried"].As<uint>(); } }
+        public uint TotalJobs { get { return this["total-jobs"].As<uint>(); } }
+        public uint CurrentWaiting { get { return this["current-waiting"].As<uint>(); } }
     }
 }
