@@ -296,7 +296,9 @@ namespace Droog.Beanstalk.Client {
             if(suppressFinalizer) {
                 GC.SuppressFinalize(this);
             }
-            _socket.Dispose();
+	    if (_socket != null) {
+                _socket.Dispose();
+	    }
             _disposed = true;
         }
 
