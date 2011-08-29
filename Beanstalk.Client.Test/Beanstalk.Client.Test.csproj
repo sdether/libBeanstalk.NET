@@ -60,6 +60,7 @@
     <Compile Include="BeanstalkProtocolTests.cs" />
     <Compile Include="ConnectionPoolTests.cs" />
     <Compile Include="ExtensionTests.cs" />
+    <Compile Include="FakeDisposableSocket.cs" />
     <Compile Include="MockSocket.cs" />
     <Compile Include="PoolSocketTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -24,38 +24,38 @@ using System.Text;
 namespace Droog.Beanstalk.Client {
     public static class BeanstalkExtensions {
 
-        public static PutResponse Put(this IBeanstalkClient client, string data) {
+        public static PutResponse PutString(this IBeanstalkClient client, string data) {
             using(var stream = new MemoryStream(Encoding.UTF8.GetBytes(data))) {
                 return client.Put(client.Defaults.Priority, client.Defaults.Delay, client.Defaults.TimeToRun, stream, stream.Length);
             }
         }
 
-        public static PutResponse Put(this IBeanstalkClient client, string data, uint priority) {
+        public static PutResponse PutString(this IBeanstalkClient client, string data, uint priority) {
             using(var stream = new MemoryStream(Encoding.UTF8.GetBytes(data))) {
                 return client.Put(priority, client.Defaults.Delay, client.Defaults.TimeToRun, stream, stream.Length);
             }
         }
 
-        public static PutResponse Put(this IBeanstalkClient client, string data, uint priority, TimeSpan delay) {
+        public static PutResponse PutString(this IBeanstalkClient client, string data, uint priority, TimeSpan delay) {
             using(var stream = new MemoryStream(Encoding.UTF8.GetBytes(data))) {
                 return client.Put(priority, delay, client.Defaults.TimeToRun, stream, stream.Length);
             }
         }
 
-        public static PutResponse Put(this IBeanstalkClient client, string data, uint priority, TimeSpan delay, TimeSpan timeToRun) {
+        public static PutResponse PutString(this IBeanstalkClient client, string data, uint priority, TimeSpan delay, TimeSpan timeToRun) {
             using(var stream = new MemoryStream(Encoding.UTF8.GetBytes(data))) {
                 return client.Put(priority, delay, timeToRun, stream, stream.Length);
             }
         }
 
-        public static Job<string> Reserve(this IBeanstalkClient client) {
+        public static Job<string> ReserveString(this IBeanstalkClient client) {
             var job = client.Reserve();
             using(var reader = new StreamReader(job.Data)) {
                 return new Job<string>(job.Id, reader.ReadToEnd());
             }
         }
 
-        public static Job<string> Reserve(this IBeanstalkClient client, TimeSpan timeout) {
+        public static Job<string> ReserveString(this IBeanstalkClient client, TimeSpan timeout) {
             var job = client.Reserve(timeout);
             if(job == null) {
                 return null;

@@ -26,7 +26,7 @@ using System.Linq;
 namespace Droog.Beanstalk.Client.Net {
 
     // TODO: need to timeout idle pools
-    public class ConnectionPool : IConnectionPool {
+    public class ConnectionPool : IConnectionPool, IDisposable {
 
         private class Available {
             public readonly DateTime Queued;
@@ -80,6 +80,7 @@ namespace Droog.Beanstalk.Client.Net {
         private readonly Dictionary<ISocket, WeakReference> _busySockets = new Dictionary<ISocket, WeakReference>();
         private readonly Timer _socketCleanupTimer;
         private TimeSpan _cleanupInterval = TimeSpan.FromSeconds(60);
+        private bool _disposed;
 
         private ConnectionPool(IPAddress address, int port) : this(() => SocketAdapter.Open(address, port, DefaultConnectTimeout)) { }
 
@@ -158,6 +159,10 @@ namespace Droog.Beanstalk.Client.Net {
         }
 
         private void Reclaim(ISocket socket) {
+            if(_disposed) {
+                socket.Dispose();
+                return;
+            }
             lock(_availableSockets) {
                 if(!_busySockets.Remove(socket)) {
                     return;
@@ -174,12 +179,7 @@ namespace Droog.Beanstalk.Client.Net {
 
         private void ReapSockets(object state) {
             lock(_availableSockets) {
-                var dead = new List<ISocket>();
-                foreach(var busy in _busySockets) {
-                    if(!busy.Key.Connected || !busy.Value.IsAlive) {
-                        dead.Add(busy.Key);
-                    }
-                }
+                var dead = (from busy in _busySockets where !busy.Key.Connected || !busy.Value.IsAlive select busy.Key).ToArray();
                 foreach(var socket in dead) {
                     _busySockets.Remove(socket);
                     if(socket.Connected) {
@@ -197,6 +197,29 @@ namespace Droog.Beanstalk.Client.Net {
                     idle.Socket.Dispose();
                 }
             }
+        }
+
+        public void Dispose() {
+            Dispose(true);
+        }
+
+        private void Dispose(bool suppressFinalizer) {
+            if(_disposed) {
+                return;
+            }
+            if(suppressFinalizer) {
+                GC.SuppressFinalize(this);
+            }
+            lock(_availableSockets) {
+                foreach(var available in _availableSockets) {
+                    available.Socket.Dispose();
+                }
+                _availableSockets.Clear();
+            }
+        }
+
+        ~ConnectionPool() {
+            Dispose(false);
         }
     }
 }

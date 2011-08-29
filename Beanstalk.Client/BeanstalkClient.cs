@@ -27,13 +27,13 @@ using Droog.Beanstalk.Client.Protocol;
 namespace Droog.Beanstalk.Client {
 
     public class BeanstalkClient : IBeanstalkClient, IWatchedTubeClient {
-
+        public const string DEFAULT_TUBE = "default";
         private readonly ISocket _socket;
         private readonly byte[] _buffer = new byte[16 * 1024];
         private readonly TubeCollectionProxy _watchedTubes;
         private readonly BeanstalkDefaults _defaults = new BeanstalkDefaults();
         private bool _disposed;
-        private string _currentTube = "default";
+        private string _currentTube = DEFAULT_TUBE;
 
         public BeanstalkClient(IPAddress address, int port)
             : this(ConnectionPool.GetPool(address, port)) {
@@ -53,21 +53,21 @@ namespace Droog.Beanstalk.Client {
             }
             _socket = socket;
             InitSocket();
-            _currentTube = "default";
-            _watchedTubes = new TubeCollectionProxy(this, new[] { "default" });
+            _currentTube = DEFAULT_TUBE;
+            _watchedTubes = new TubeCollectionProxy(this, new[] { DEFAULT_TUBE });
         }
 
         private void InitSocket() {
-            Exec(Request.Create(RequestCommand.Use).AppendArgument("default").ExpectStatuses(ResponseStatus.Using));
+            Exec(Request.Create(RequestCommand.Use).AppendArgument(DEFAULT_TUBE).ExpectStatuses(ResponseStatus.Using));
             var client = ((IWatchedTubeClient)this);
             var tubes = new HashSet<string>();
             foreach(var tube in client.ListWatchedTubes()) {
                 tubes.Add(tube);
             }
-            if(tubes.Contains("default")) {
-                tubes.Remove("default");
+            if(tubes.Contains(DEFAULT_TUBE)) {
+                tubes.Remove(DEFAULT_TUBE);
             } else {
-                client.Watch("default");
+                client.Watch(DEFAULT_TUBE);
             }
             var watched = 1;
             foreach(var tube in tubes) {

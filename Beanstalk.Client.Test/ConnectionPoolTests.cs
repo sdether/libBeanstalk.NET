@@ -47,13 +47,12 @@ namespace Droog.Beanstalk.Client.Test {
         }
 
         [Test]
-        public void Different_host_port_gets_differnt_pool() {
+        public void Different_host_port_gets_different_pool() {
             var pool = ConnectionPool.GetPool("foo", 123);
             Assert.AreNotSame(pool, ConnectionPool.GetPool("bob", 123));
         }
 
         [Test]
-
         public void Too_many_busy_connections_throws() {
             Func<ISocket> socketFactory = () => new MockSocket();
             var pool = new ConnectionPool(socketFactory) { MaxConnections = 5 };
@@ -208,6 +207,44 @@ namespace Droog.Beanstalk.Client.Test {
             pool.GetSocket().Dispose();
             Assert.AreEqual(0, sockets[0].DisposeCalled);
             Wait(() => sockets[0].DisposeCalled > 0, TimeSpan.FromSeconds(5), "socket didn't get cleaned up");
+        }
+
+        [Test]
+        public void Disposing_pool_cleans_up_sockets() {
+            var sockets = new List<FakeDisposableSocket>();
+            Func<ISocket> socketFactory = () => {
+                var socket = new FakeDisposableSocket();
+                sockets.Add(socket);
+                return socket;
+            };
+            var pool = new ConnectionPool(socketFactory);
+            var s1 = pool.GetSocket();
+            var s2 = pool.GetSocket();
+            s1.Dispose();
+            s2.Dispose();
+            Assert.AreEqual(2, sockets.Count, "wrong number of sockets created");
+            Assert.IsFalse(sockets[0].Disposed, "first socket was disposed");
+            Assert.IsFalse(sockets[1].Disposed, "second socket was disposed");
+            pool.Dispose();
+            Assert.IsTrue(sockets[0].Disposed, "first socket was not disposed");
+            Assert.IsTrue(sockets[1].Disposed, "second socket was not disposed");
+        }
+
+        [Test]
+        public void Disposing_pool_does_not_affect_busy_sockets() {
+            var sockets = new List<FakeDisposableSocket>();
+            Func<ISocket> socketFactory = () => {
+                var socket = new FakeDisposableSocket();
+                sockets.Add(socket);
+                return socket;
+            };
+            var pool = new ConnectionPool(socketFactory);
+            var s1 = pool.GetSocket();
+            Assert.AreEqual(1, sockets.Count, "wrong number of sockets created");
+            Assert.IsFalse(sockets[0].Disposed, "socket was disposed");
+            pool.Dispose();
+            Assert.IsFalse(sockets[0].Disposed, "socket was disposed");
+            s1.Dispose();
         }
 
         private void Wait(Func<bool> func, TimeSpan timeout, string failMessage) {
