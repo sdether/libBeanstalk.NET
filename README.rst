@@ -21,10 +21,10 @@ String data payload
   using(var client = new BeanstalkClient(host, port)) {
 
     // put some data
-    var put = client.Put("foo");
+    var put = client.PutString("foo");
   
     // reserve data from queue
-    var reserve = client.Reserve();
+    var reserve = client.ReserveString();
     Console.Writeline("data: {0}", reserve.Data);
     
     // delete reserved data from queue
