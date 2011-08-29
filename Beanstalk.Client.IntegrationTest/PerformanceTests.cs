@@ -26,6 +26,7 @@ using System.Threading;
 using Droog.Beanstalk.Client.Net;
 using Droog.Beanstalk.Client.Test;
 using NUnit.Framework;
+using System.Linq;
 
 namespace Droog.Beanstalk.Client.IntegrationTest {
 
@@ -71,6 +72,110 @@ namespace Droog.Beanstalk.Client.IntegrationTest {
                 }
                 stopwatch.Stop();
                 Console.WriteLine("delete: {0:0} items/sec", n / stopwatch.Elapsed.TotalSeconds);
+            }
+        }
+
+        [Test]
+        public void Producer_consumer() {
+            using(var pool = ConnectionPool.GetPool(TestConfig.Host, TestConfig.Port)) {
+                var tube = Guid.NewGuid().ToString();
+                var produced = new List<string>();
+                var consumed = new List<string>();
+                var n = 10000;
+                var producerTimer = new Stopwatch();
+                var producer = new Thread(() => {
+                    Console.WriteLine("producer started");
+                    using(var producerClient = new BeanstalkClient(pool)) {
+                        producerClient.CurrentTube = tube;
+                        Console.WriteLine("producing into tube '{0}'", producerClient.CurrentTube);
+                        producerTimer.Start();
+                        for(var i = 0; i < n; i++) {
+                            var data = Guid.NewGuid().ToString();
+                            produced.Add(data);
+                            producerClient.PutString(data);
+                            if(i % 2000 == 0) {
+                                Console.WriteLine("enqueued {0} @ {1:0} items/sec", i, i / producerTimer.Elapsed.TotalSeconds);
+                            }
+                        }
+                        producerTimer.Stop();
+                        Console.WriteLine("done producing");
+                    }
+                });
+                producer.Start();
+                Thread.Sleep(2000);
+                var consumerTimer = new Stopwatch();
+                Console.WriteLine("consumer started");
+                using(var consumerClient = new BeanstalkClient(pool)) {
+                    consumerClient.WatchedTubes.Add(tube);
+                    consumerClient.WatchedTubes.Remove(BeanstalkClient.DEFAULT_TUBE);
+                    Console.WriteLine("consuming from tube '{0}'", tube);
+                    consumerTimer.Start();
+                    while(consumed.Count < n) {
+                        var job = consumerClient.ReserveString(TimeSpan.Zero);
+                        consumed.Add(job.Data);
+                        consumerClient.Delete(job.JobId);
+                        if(consumed.Count % 2000 == 0) {
+                            Console.WriteLine("dequeued {0} @ {1:0} items/sec", consumed.Count, consumed.Count / consumerTimer.Elapsed.TotalSeconds);
+                        }
+                    }
+                    consumerTimer.Stop();
+                    Console.WriteLine("done consuming");
+                }
+                producer.Join();
+                Assert.AreEqual(n, produced.Count, "wrong number of produced items");
+                Assert.AreEqual(n, consumed.Count, "wrong number of consumed items");
+                Assert.AreEqual(produced.OrderBy(x => x).ToArray(), consumed.OrderBy(x => x).ToArray());
+                Console.WriteLine("final enqueue: {0:0} items/sec", n / producerTimer.Elapsed.TotalSeconds);
+                Console.WriteLine("final dequeue: {0:0} items/sec", n / consumerTimer.Elapsed.TotalSeconds);
+            }
+        }
+
+        [Test]
+        public void Producer_consumer_load_test_runs_forever() {
+            var pool = ConnectionPool.GetPool(TestConfig.Host, TestConfig.Port);
+            var tube = Guid.NewGuid().ToString();
+            var set = 0;
+            while(true) {
+                set++;
+                var produced = new List<string>();
+                var consumed = new List<string>();
+                var n = 10000;
+                var producerTimer = new Stopwatch();
+                var producer = new Thread(() => {
+                    using(var producerClient = new BeanstalkClient(pool)) {
+                        producerClient.CurrentTube = tube;
+                        producerTimer.Start();
+                        for(var i = 0; i < n; i++) {
+                            var data = Guid.NewGuid().ToString();
+                            produced.Add(data);
+                            producerClient.PutString(data);
+                        }
+                        producerTimer.Stop();
+                    }
+                });
+                producer.Start();
+                Thread.Sleep(1000);
+                var consumerTimer = new Stopwatch();
+                using(var consumerClient = new BeanstalkClient(pool)) {
+                    consumerClient.WatchedTubes.Add(tube);
+                    consumerClient.WatchedTubes.Remove(BeanstalkClient.DEFAULT_TUBE);
+                    consumerTimer.Start();
+                    while(consumed.Count < n) {
+                        var job = consumerClient.ReserveString(TimeSpan.Zero);
+                        consumed.Add(job.Data);
+                        consumerClient.Delete(job.JobId);
+                    }
+                    consumerTimer.Stop();
+                }
+                producer.Join();
+                Assert.AreEqual(n, produced.Count, "wrong number of produced items");
+                Assert.AreEqual(n, consumed.Count, "wrong number of consumed items");
+                Assert.AreEqual(produced.OrderBy(x => x).ToArray(), consumed.OrderBy(x => x).ToArray());
+                Console.WriteLine("set {0} enqueue/dequeue: {1:0}/{2:0} items/sec",
+                    set,
+                    n / producerTimer.Elapsed.TotalSeconds,
+                    n / consumerTimer.Elapsed.TotalSeconds
+                );
             }
         }
 

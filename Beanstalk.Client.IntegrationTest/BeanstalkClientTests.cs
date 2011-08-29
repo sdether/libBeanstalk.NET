@@ -115,6 +115,19 @@ namespace Droog.Beanstalk.Client.IntegrationTest {
             }
         }
 
+        [Test]
+        public void Removal_of_last_watched_tube_is_ignored() {
+            using(var client = CreateClient()) {
+                client.WatchedTubes.Add("bob");
+                client.WatchedTubes.Remove("default");
+                Assert.AreEqual(1, client.WatchedTubes.Count);
+                Assert.AreEqual("bob", client.WatchedTubes.First());
+                client.WatchedTubes.Remove("bob");
+                Assert.AreEqual(1, client.WatchedTubes.Count);
+                Assert.AreEqual("bob",client.WatchedTubes.First());
+            }
+        }
+
         private BeanstalkClient CreateClient() {
             return new BeanstalkClient(TestConfig.Host, TestConfig.Port);
         }

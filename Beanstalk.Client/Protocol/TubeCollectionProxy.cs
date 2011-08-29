@@ -62,7 +62,7 @@ namespace Droog.Beanstalk.Client.Protocol {
                 return false;
             }
             var watched = _client.Ignore(tube);
-            if(watched != _tubes.Count) {
+            if(watched != _tubes.Count || _tubes.Count == 0) {
                 Refresh();
             }
             return true;
