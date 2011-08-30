@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{7103300D-B9FA-485A-912D-D9CC9D8B80F7}</ProjectGuid>
+    <ProjectGuid>{2F08AA2C-CEB2-4AB4-92C9-B30EA965EB13}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Droog.Beanstalk.Client</RootNamespace>
-    <AssemblyName>Droog.Beanstalk.Client</AssemblyName>
+    <RootNamespace>Beanstalk.Client.Json</RootNamespace>
+    <AssemblyName>Beanstalk.Client.Json</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -31,6 +31,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=3.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\redist\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -45,40 +49,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BeanstalkClient.cs" />
-    <Compile Include="BeanstalkClientExceptions.cs" />
-    <Compile Include="BeanstalkDefaults.cs" />
-    <Compile Include="BeanstalkExtensions.cs" />
-    <Compile Include="JobState.cs" />
-    <Compile Include="Net\ConnectionPool.cs" />
-    <Compile Include="Net\IConnectionPool.cs" />
-    <Compile Include="Net\ISocket.cs" />
-    <Compile Include="Net\PoolExhaustedException.cs" />
-    <Compile Include="Net\Helper\PoolSocket.cs" />
-    <Compile Include="Protocol\IWatchedTubeClient.cs" />
-    <Compile Include="IWatchedTubeCollection.cs" />
-    <Compile Include="Protocol\MicroYaml.cs" />
-    <Compile Include="Protocol\RequestCommand.cs" />
-    <Compile Include="IBeanstalkClient.cs" />
-    <Compile Include="Job.cs" />
-    <Compile Include="Protocol\Extensions.cs" />
-    <Compile Include="JobStats.cs" />
-    <Compile Include="PeekResponse.cs" />
+    <Compile Include="JsonExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Net\Helper\SocketAdapter.cs" />
-    <Compile Include="Protocol\TubeCollectionProxy.cs" />
-    <Compile Include="PutResponse.cs" />
-    <Compile Include="ReleaseStatus.cs" />
-    <Compile Include="ReservationStatus.cs" />
-    <Compile Include="ServerStats.cs" />
-    <Compile Include="Protocol\StatsBase.cs" />
-    <Compile Include="TubeStats.cs" />
-    <Compile Include="Protocol\Request.cs" />
-    <Compile Include="Protocol\RequestData.cs" />
-    <Compile Include="Protocol\Response.cs" />
-    <Compile Include="Protocol\ResponseInfo.cs" />
-    <Compile Include="Protocol\ResponseStatus.cs" />
-    <Compile Include="Util\TypeConverter.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Beanstalk.Client\Beanstalk.Client.csproj">
+      <Project>{7103300D-B9FA-485A-912D-D9CC9D8B80F7}</Project>
+      <Name>Beanstalk.Client</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

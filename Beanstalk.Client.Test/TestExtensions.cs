@@ -1,6 +1,6 @@
 ﻿/*
  * libBeanstalk.NET 
- * Copyright (C) 2010 Arne F. Claassen
+ * Copyright (C) 2011 Arne F. Claassen
  * geekblog [at] claassen [dot] net
  * http://github.com/sdether/libBeanstalk.NET 
  *
