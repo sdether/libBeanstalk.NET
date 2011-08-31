@@ -19,10 +19,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using Beanstalk.Client.Json;
-using Moq;
+using Droog.Beanstalk.Client.Json;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 

@@ -18,11 +18,10 @@
  */
 using System;
 using System.IO;
-using Droog.Beanstalk.Client;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Beanstalk.Client.Json {
+namespace Droog.Beanstalk.Client.Json {
     public static class JsonExtensions {
         public static PutResponse PutJson(this IBeanstalkClient client, JObject data) {
             return client.PutJson(data, client.Defaults.Priority, client.Defaults.Delay, client.Defaults.TimeToRun);

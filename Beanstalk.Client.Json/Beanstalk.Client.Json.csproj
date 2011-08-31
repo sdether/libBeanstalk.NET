@@ -8,8 +8,8 @@
     <ProjectGuid>{2F08AA2C-CEB2-4AB4-92C9-B30EA965EB13}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Beanstalk.Client.Json</RootNamespace>
-    <AssemblyName>Beanstalk.Client.Json</AssemblyName>
+    <RootNamespace>Droog.Beanstalk.Client.Json</RootNamespace>
+    <AssemblyName>Droog.Beanstalk.Client.Json</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
