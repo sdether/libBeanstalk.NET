@@ -39,6 +39,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\redist\Moq.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=3.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\redist\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="nunit.framework, Version=2.4.8.0, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\redist\nunit.framework.dll</HintPath>
@@ -61,6 +65,7 @@
     <Compile Include="ConnectionPoolTests.cs" />
     <Compile Include="ExtensionTests.cs" />
     <Compile Include="FakeDisposableSocket.cs" />
+    <Compile Include="JsonExtensionsTests.cs" />
     <Compile Include="MockSocket.cs" />
     <Compile Include="PoolSocketTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -68,6 +73,10 @@
     <Compile Include="TestExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Beanstalk.Client.Json\Beanstalk.Client.Json.csproj">
+      <Project>{2F08AA2C-CEB2-4AB4-92C9-B30EA965EB13}</Project>
+      <Name>Beanstalk.Client.Json</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Beanstalk.Client\Beanstalk.Client.csproj">
       <Project>{7103300D-B9FA-485A-912D-D9CC9D8B80F7}</Project>
       <Name>Beanstalk.Client</Name>

@@ -18,23 +18,19 @@
  */
 
 using System.IO;
-using System.Text;
 
 namespace Droog.Beanstalk.Client {
     public class Job {
         private readonly uint _id;
         private readonly Stream _data;
-        private readonly long _length;
 
-        public Job(uint jobId, Stream data, long length) {
+        public Job(uint jobId, Stream data) {
             _id = jobId;
             _data = data;
-            _length = length;
         }
 
         public uint Id { get { return _id; } }
         public Stream Data { get { return _data; } }
-        public long DataLength { get { return _length; } }
     }
 
     public class Job<T> {

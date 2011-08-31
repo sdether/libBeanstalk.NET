@@ -120,7 +120,7 @@ namespace Droog.Beanstalk.Client {
             var response = Exec(Request.Create(RequestCommand.Reserve).ExpectStatuses(ResponseStatus.DeadlineSoon | ResponseStatus.Reserved));
             switch(response.Status) {
                 case ResponseStatus.Reserved:
-                    return new Job(uint.Parse(response.Arguments[0]), response.Data, long.Parse(response.Arguments[1]));
+                    return new Job(uint.Parse(response.Arguments[0]), response.Data);
                 case ResponseStatus.DeadlineSoon:
                     throw new DeadlineSoonException();
             }
@@ -133,7 +133,7 @@ namespace Droog.Beanstalk.Client {
                 .ExpectStatuses(ResponseStatus.DeadlineSoon | ResponseStatus.TimedOut | ResponseStatus.Reserved));
             switch(response.Status) {
                 case ResponseStatus.Reserved:
-                    return new Job(uint.Parse(response.Arguments[0]), response.Data, long.Parse(response.Arguments[1]));
+                    return new Job(uint.Parse(response.Arguments[0]), response.Data);
                 case ResponseStatus.TimedOut:
                     throw new TimedoutException();
                 case ResponseStatus.DeadlineSoon:
@@ -148,7 +148,7 @@ namespace Droog.Beanstalk.Client {
                 .ExpectStatuses(ResponseStatus.DeadlineSoon | ResponseStatus.TimedOut | ResponseStatus.Reserved));
             switch(response.Status) {
                 case ResponseStatus.Reserved:
-                    job = new Job(uint.Parse(response.Arguments[0]), response.Data, long.Parse(response.Arguments[1]));
+                    job = new Job(uint.Parse(response.Arguments[0]), response.Data);
                     break;
                 default:
                     job = null;
@@ -250,7 +250,7 @@ namespace Droog.Beanstalk.Client {
             var response = Exec(request.ExpectStatuses(ResponseStatus.Found | ResponseStatus.NotFound));
             return response.Status == ResponseStatus.NotFound
                 ? null
-                : new Job(uint.Parse(response.Arguments[0]), response.Data, long.Parse(response.Arguments[1]));
+                : new Job(uint.Parse(response.Arguments[0]), response.Data);
         }
 
         private Response Exec(Request request) {

@@ -18,7 +18,6 @@
  */
 using System;
 using System.IO;
-using System.Text;
 using Droog.Beanstalk.Client;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -26,25 +25,25 @@ using Newtonsoft.Json.Linq;
 namespace Beanstalk.Client.Json {
     public static class JsonExtensions {
         public static PutResponse PutJson(this IBeanstalkClient client, JObject data) {
-            using(var stream = GetJsonStream(data)) {
-                return client.Put(client.Defaults.Priority, client.Defaults.Delay, client.Defaults.TimeToRun, stream, stream.Length);
-            }
+            return client.PutJson(data, client.Defaults.Priority, client.Defaults.Delay, client.Defaults.TimeToRun);
         }
 
         public static PutResponse PutJson(this IBeanstalkClient client, JObject data, uint priority) {
-            using(var stream = GetJsonStream(data)) {
-                return client.Put(priority, client.Defaults.Delay, client.Defaults.TimeToRun, stream, stream.Length);
-            }
+            return client.PutJson(data, priority, client.Defaults.Delay, client.Defaults.TimeToRun);
         }
 
         public static PutResponse PutJson(this IBeanstalkClient client, JObject data, uint priority, TimeSpan delay) {
-            using(var stream = GetJsonStream(data)) {
-                return client.Put(priority, delay, client.Defaults.TimeToRun, stream, stream.Length);
-            }
+            return client.PutJson(data, priority, delay, client.Defaults.TimeToRun);
         }
 
         public static PutResponse PutJson(this IBeanstalkClient client, JObject data, uint priority, TimeSpan delay, TimeSpan timeToRun) {
-            using(var stream = GetJsonStream(data)) {
+            using(var stream = new MemoryStream()) {
+                var writer = new StreamWriter(stream);
+                var jsonWriter = new JsonTextWriter(writer);
+                jsonWriter.Formatting = Formatting.None;
+                data.WriteTo(jsonWriter);
+                jsonWriter.Flush();
+                stream.Position = 0;
                 return client.Put(priority, delay, timeToRun, stream, stream.Length);
             }
         }
@@ -68,10 +67,6 @@ namespace Beanstalk.Client.Json {
                     return new Job<JObject>(job.Id, JObject.Load(jsonReader));
                 }
             }
-        }
-
-        private static MemoryStream GetJsonStream(JObject data) {
-            return new MemoryStream(Encoding.UTF8.GetBytes(data.ToString()));
         }
     }
 }
