@@ -82,7 +82,7 @@ namespace Droog.Beanstalk.Client.IntegrationTest {
 
         [Test]
         public void Can_change_current_tube() {
-            using (var client = CreateClient()) {
+            using(var client = CreateClient()) {
                 Assert.AreEqual("default", client.CurrentTube);
                 client.CurrentTube = "foo";
                 Assert.AreEqual("foo", client.CurrentTube);
@@ -92,10 +92,10 @@ namespace Droog.Beanstalk.Client.IntegrationTest {
         [Test]
         public void Can_Watch_and_Ignore_tubes() {
             using(var client = CreateClient()) {
-                Assert.AreEqual(1,client.WatchedTubes.Count);
+                Assert.AreEqual(1, client.WatchedTubes.Count);
                 client.WatchedTubes.Add("foo");
                 Assert.AreEqual(2, client.WatchedTubes.Count);
-                Assert.AreEqual(new[]{"default","foo"},client.WatchedTubes.OrderBy(x => x).ToArray());
+                Assert.AreEqual(new[] { "default", "foo" }, client.WatchedTubes.OrderBy(x => x).ToArray());
                 client.WatchedTubes.Refresh();
                 Assert.AreEqual(2, client.WatchedTubes.Count);
                 Assert.AreEqual(new[] { "default", "foo" }, client.WatchedTubes.OrderBy(x => x).ToArray());
@@ -111,7 +111,23 @@ namespace Droog.Beanstalk.Client.IntegrationTest {
                 var stats = client.GetServerStats();
                 Assert.IsNotNull(stats["version"]);
                 Assert.AreEqual(stats.Version, stats["version"]);
-                Assert.Greater(stats.Uptime,TimeSpan.Zero);
+                Assert.Greater(stats.Uptime, TimeSpan.Zero);
+            }
+        }
+        [Test]
+        public void Can_get_tube_stats() {
+            using(var client = CreateClient()) {
+                foreach(var tube in client.GetTubes()) {
+                    var tubeStats = client.GetTubeStats(tube);
+                    Console.WriteLine("--Name:                {0} --------------------", tubeStats.Name);
+                    Console.WriteLine("  TotalJobs:           {0}", tubeStats.TotalJobs);
+                    Console.WriteLine("  CurrentBuriedJobs:   {0}", tubeStats.CurrentBuriedJobs);
+                    Console.WriteLine("  CurrentDelayedJobs:  {0}", tubeStats.CurrentDelayedJobs);
+                    Console.WriteLine("  CurrentReadyJobs:    {0}", tubeStats.CurrentReadyJobs);
+                    Console.WriteLine("  CurrentReservedJobs: {0}", tubeStats.CurrentReservedJobs);
+                    Console.WriteLine("  CurrentUrgentJobs:   {0}", tubeStats.CurrentUrgentJobs);
+                    Console.WriteLine("  CurrentWaiting:      {0}", tubeStats.CurrentWaiting);
+                }
             }
         }
 
@@ -124,7 +140,33 @@ namespace Droog.Beanstalk.Client.IntegrationTest {
                 Assert.AreEqual("bob", client.WatchedTubes.First());
                 client.WatchedTubes.Remove("bob");
                 Assert.AreEqual(1, client.WatchedTubes.Count);
-                Assert.AreEqual("bob",client.WatchedTubes.First());
+                Assert.AreEqual("bob", client.WatchedTubes.First());
+            }
+        }
+
+        [Test, Ignore]
+        public void Wipe_all_queues() {
+            using(var client = CreateClient()) {
+                long expectedJobs = 0;
+                foreach(var tube in client.GetTubes()) {
+                    client.WatchedTubes.Add(tube);
+                    var tubeStats = client.GetTubeStats(tube);
+                    expectedJobs += tubeStats.CurrentReadyJobs;
+                    Console.WriteLine("{0}: {1}", tube, tubeStats.CurrentReadyJobs);
+                }
+                var counter = 0;
+                while(true) {
+                    Job job;
+                    if(client.TryReserve(TimeSpan.Zero, out job) == ReservationStatus.TimedOut) {
+                        break;
+                    }
+                    client.Delete(job.Id);
+                    counter++;
+                    if(counter % 1000 == 0) {
+                        Console.WriteLine("removed {0} pending messages", counter);
+                    }
+                }
+                Console.WriteLine("removed a total of {0} pending messages");
             }
         }
 

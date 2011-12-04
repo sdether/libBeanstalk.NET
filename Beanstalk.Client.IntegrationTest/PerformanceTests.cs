@@ -133,7 +133,8 @@ namespace Droog.Beanstalk.Client.IntegrationTest {
         [Test]
         public void Producer_consumer_load_test_runs_forever() {
             var pool = ConnectionPool.GetPool(TestConfig.Host, TestConfig.Port);
-            var tube = Guid.NewGuid().ToString();
+            var tube = "forever-" + Guid.NewGuid().ToString();
+            Console.WriteLine("using tube: {0}", tube);
             var set = 0;
             while(true) {
                 set++;
@@ -176,6 +177,21 @@ namespace Droog.Beanstalk.Client.IntegrationTest {
                     n / producerTimer.Elapsed.TotalSeconds,
                     n / consumerTimer.Elapsed.TotalSeconds
                 );
+                using(var client = new BeanstalkClient(pool)) {
+                    foreach(var t in client.GetTubes()) {
+                        var tubeStats = client.GetTubeStats(t);
+                        Console.WriteLine("{0}:total:{1}/buried:{2}/delayed:{3}/ready:{4}/reserved:{5}/urgent:{6}/waiting:{7}",
+                            tubeStats.Name,
+                            tubeStats.TotalJobs,
+                            tubeStats.CurrentBuriedJobs,
+                            tubeStats.CurrentDelayedJobs,
+                            tubeStats.CurrentReadyJobs,
+                            tubeStats.CurrentReservedJobs,
+                            tubeStats.CurrentUrgentJobs,
+                            tubeStats.CurrentWaiting
+                        );
+                    }
+                }
             }
         }
 
